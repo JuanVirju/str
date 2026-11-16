@@ -1,0 +1,19 @@
+{
+  "_ayuda": "Un texto por equipo y mes, un caracter por dia: M=Manana T=Tarde N=Noche V=dia V (por confirmar) -=libre. Los dias que faltan se muestran como sin datos.",
+  "nombre": "Cuadrante de turnos",
+  "lugar": "Cartagena",
+  "equipos": ["A", "B", "C", "D", "E"],
+  "meses": {
+    "2026-11": {
+      "A": "-MMTTNNNVV--MMMT",
+      "B": "MTTNN-----MMTTTN",
+      "C": "TNN-----MMTTNNNV",
+      "D": "---MMTTTNN-----M",
+      "E": "NVV--MMMTTNN----"
+    }
+  },
+  "enlaces": [
+    { "texto": "Enlace de ejemplo 1", "url": "#" },
+    { "texto": "Enlace de ejemplo 2", "url": "#" }
+  ]
+}

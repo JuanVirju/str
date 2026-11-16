@@ -1,0 +1,121 @@
+:root {
+  --azul: #0b3d91;
+  --azul-claro: #dbe7ff;
+  --finde: #1d4ed8;
+  --rojo: #d00000;
+  --m: #ffd166;
+  --t: #f4a261;
+  --n: #264653;
+  --fondo: #eceef3;
+  --borde: #c9ced9;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fondo);
+  color: #111;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.cab {
+  background: var(--azul);
+  color: #fff;
+  padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
+}
+.cab h1 { margin: 0; font-size: 1.35rem; }
+.cab p { margin: 2px 0 0; opacity: .85; }
+main { max-width: 720px; margin: 0 auto; padding: 12px; }
+
+.hoy {
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--borde);
+}
+.hoy .fecha { margin: 0; color: #444; }
+.hoy .fecha::first-letter { text-transform: uppercase; }
+.hoy .grande { font-size: 1.8rem; font-weight: 800; margin: 4px 0 8px; }
+.hoy .grande small { font-size: 1rem; font-weight: 600; color: #555; }
+.hoy .quien { margin: 0; font-size: .95rem; color: #333; }
+.hoy .quien span { display: inline-block; margin-right: 10px; }
+
+.bloque { background: #fff; border-radius: 14px; padding: 12px; margin-bottom: 12px; border: 1px solid var(--borde); }
+.bloque h2 { font-size: 1rem; margin: 0 0 8px; }
+
+.chips { display: flex; gap: 8px; }
+.chips button {
+  flex: 1; min-height: 48px; font-size: 1.25rem; font-weight: 700;
+  border: 2px solid var(--azul); background: #fff; color: var(--azul);
+  border-radius: 12px;
+}
+.chips button[aria-checked="true"] { background: var(--azul); color: #fff; }
+
+.mes-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.mes-nav button {
+  width: 48px; height: 44px; font-size: 1.6rem; border: 1px solid var(--borde);
+  background: #f6f7fb; border-radius: 10px;
+}
+.mes-nav strong { font-size: 1.1rem; text-transform: capitalize; }
+
+.vistas { display: flex; gap: 6px; margin-bottom: 10px; }
+.vistas button {
+  flex: 1; min-height: 42px; border: 1px solid var(--borde); background: #f6f7fb;
+  border-radius: 10px; font-weight: 600; font-size: .95rem;
+}
+.vistas button[aria-selected="true"] { background: var(--azul-claro); border-color: var(--azul); color: var(--azul); }
+
+/* Calendario del equipo */
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal .dn { text-align: center; font-weight: 700; font-size: .8rem; color: #444; padding: 2px 0; }
+.cal .c {
+  min-height: 54px; border-radius: 8px; border: 1px solid var(--borde);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fafafa;
+}
+.cal .c .d { font-size: .75rem; color: #444; }
+.cal .c .s { font-size: 1.15rem; font-weight: 800; }
+.cal .c.vacio { border: none; background: none; }
+.cal .c.finde { border-color: var(--finde); }
+.cal .c.hoy-c { outline: 3px solid var(--rojo); outline-offset: -1px; }
+.cal .c.M { background: var(--m); }
+.cal .c.T { background: var(--t); }
+.cal .c.N { background: var(--n); color: #fff; }
+.cal .c.N .d { color: #dde; }
+.cal .c.V .s { color: var(--rojo); }
+.cal .c.V { background: #fff; }
+
+/* Tabla A-E */
+.tabla-wrap { overflow-x: auto; border: 1px solid #000; border-radius: 6px; }
+table.t { border-collapse: collapse; width: max-content; min-width: 100%; }
+table.t th, table.t td {
+  border: 1px solid #000; text-align: center; min-width: 34px; height: 38px;
+  font-weight: 800; font-size: 1rem; padding: 0 2px;
+}
+table.t thead th { background: #8ec0ff; color: #0a2a6b; font-size: .85rem; position: sticky; top: 0; }
+table.t thead tr:first-child th { height: 30px; }
+table.t th.eq { background: #8ec0ff; color: #0a2a6b; position: sticky; left: 0; z-index: 2; min-width: 38px; }
+table.t th.finde-h { background: #3b82f6; color: #fff; }
+table.t td.finde { background: var(--finde); color: #fff; }
+table.t td.V { color: var(--rojo); }
+table.t td.finde.V { color: #ffb3b3; }
+table.t td { color: #0a2a6b; }
+table.t .hoy-col { box-shadow: inset 0 0 0 3px var(--rojo); }
+table.t tr.mi th.eq { background: var(--azul); color: #fff; }
+table.t td.sd { color: #999; font-weight: 400; background: #f3f3f3; }
+
+.sin-datos { text-align: center; padding: 22px 8px; color: #555; }
+
+.leyenda { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; padding: 0; margin: 12px 0 0; font-size: .85rem; }
+.leyenda .p { display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 6px; font-weight: 800; border: 1px solid var(--borde); }
+.leyenda .p.M { background: var(--m); }
+.leyenda .p.T { background: var(--t); }
+.leyenda .p.N { background: var(--n); color: #fff; }
+.leyenda .p.V { color: var(--rojo); background: #fff; }
+
+.enlaces { display: grid; gap: 8px; }
+.enlaces a {
+  display: block; padding: 14px; background: var(--azul); color: #fff; text-decoration: none;
+  border-radius: 12px; font-weight: 600; text-align: center; min-height: 48px;
+}
+.pie { text-align: center; color: #666; font-size: .8rem; padding: 6px 16px 22px; }
