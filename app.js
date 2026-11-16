@@ -112,13 +112,16 @@
   function bloqueEnlaces(emp, sec) {
     var cont = el('section', { class: 'bloque info' }, [el('h2', { text: 'Información' })]);
     var cfg = (datos.empresas[emp].enlaces || {})[sec] || {};
-    var lista = el('div', { class: 'enlaces' });
+    var lista = el('div', { class: 'tiles uno' });
     [['convenio', 'Convenio colectivo'], ['faq', 'Preguntas frecuentes y dudas']].forEach(function (par) {
       var url = cfg[par[0]];
       if (url) {
-        lista.appendChild(el('a', { href: url, target: '_blank', rel: 'noopener', text: par[1] }));
+        lista.appendChild(el('a', { class: 'tile ancho', href: url, target: '_blank', rel: 'noopener' }, [el('span', { class: 'tile-t', text: par[1] })]));
       } else {
-        lista.appendChild(el('span', { class: 'pronto', 'aria-disabled': 'true', text: par[1] + ' (próximamente)' }));
+        lista.appendChild(el('span', { class: 'tile ancho pronto-tile', 'aria-disabled': 'true' }, [
+          el('span', { class: 'tile-t', text: par[1] }),
+          el('span', { class: 'tile-s', text: 'Próximamente' })
+        ]));
       }
     });
     cont.appendChild(lista);
