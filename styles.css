@@ -194,3 +194,16 @@ table.t { touch-action: pan-x pan-y; }
 .cal .c.solo { min-height: 50px; }
 .cal .c.solo .d { font-size: 1.1rem; font-weight: 800; color: #111; }
 .cal .c.F.solo .d { color: #fff; }
+
+.cab-izq { display: flex; gap: 10px; align-items: center; }
+.cab .atras.icono { padding: 0; width: 44px; justify-content: center; }
+.cab .atras[hidden] { display: none; }
+.vecinos { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.vecino {
+  display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-height: 52px;
+  background: #fff; border: 2px solid var(--azul); border-radius: 14px; color: var(--azul);
+  text-decoration: none; font-weight: 700; text-transform: capitalize;
+}
+.vecino .fl { font-size: 1.8rem; line-height: 1; }
+.vecino:active { background: var(--azul-claro); }
+.vecino.off { visibility: hidden; }

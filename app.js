@@ -80,6 +80,8 @@
     document.getElementById('sub').textContent = emp ? '' : (sub || '');
     var a = document.getElementById('atras');
     if (atras) { a.setAttribute('href', atras); a.hidden = false; } else { a.hidden = true; }
+    // La casita solo cuando "Atrás" no lleva ya al inicio.
+    document.getElementById('inicio').hidden = !atras || atras === '#/';
     var cl = document.getElementById('cab-logo');
     cl.textContent = '';
     if (emp) cl.appendChild(logo(emp, 'peque'));
@@ -202,6 +204,20 @@
     app.appendChild(bloqueEnlaces(emp, sec));
   }
 
+  // Flechas al mes anterior y siguiente que tengan datos.
+  function navVecinos(emp, sec, k, claves) {
+    var i = claves.indexOf(k);
+    function lado(j, clase, flecha, alReves) {
+      if (j < 0 || j >= claves.length) return el('span', { class: 'vecino ' + clase + ' off' });
+      var nm = MESES[+claves[j].slice(5) - 1];
+      var partes = alReves ? [el('span', { class: 'fl', text: flecha }), el('span', { text: nm })]
+                           : [el('span', { text: nm }), el('span', { class: 'fl', text: flecha })];
+      return el('a', { class: 'vecino ' + clase, href: '#/' + emp + '/' + sec + '/' + claves[j],
+        'aria-label': (alReves ? 'Mes anterior: ' : 'Mes siguiente: ') + nm }, partes);
+    }
+    return el('nav', { class: 'vecinos', 'aria-label': 'Cambiar de mes' }, [lado(i - 1, 'ant', '‹', true), lado(i + 1, 'sig', '›', false)]);
+  }
+
   /* ---------- pantalla 4a: un mes de turnos, los 5 equipos ---------- */
   function pantallaMesTurnos(app, emp, k) {
     var e = datos.empresas[emp];
@@ -233,6 +249,7 @@
       tbody.appendChild(tr);
     });
     var tabla = el('table', { class: 't' }, [el('thead', null, [f1, f2]), tbody]);
+    app.appendChild(navVecinos(emp, 'turnos', k, Object.keys(e.turnos.meses).sort()));
     app.appendChild(el('section', { class: 'bloque' }, [el('div', { class: 'tabla-wrap' }, [tabla]), el('p', { class: 'nota', text: 'Desliza hacia los lados para ver todos los días →' })]));
   }
 
@@ -246,6 +263,7 @@
     [['J', 'Jornada 8,5 h'], ['R', 'Jornada 8 h'], ['I', 'Intensiva 6 / 6,5 h'], ['F', 'Festivo']].forEach(function (par) {
       leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] }), document.createTextNode(' ' + par[1])]));
     });
+    app.appendChild(navVecinos(emp, 'ordinario', k, Object.keys(e.ordinario.meses).sort()));
     app.appendChild(el('section', { class: 'bloque' }, [
       cuadricula(k, function (d) { return mes[d - 1]; }, { soloDia: true }),
       leyenda
