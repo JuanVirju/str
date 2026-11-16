@@ -2,7 +2,7 @@
  "_ayuda": "Turnos: un texto por equipo y mes, un caracter por dia (M manana, T tarde, N noche, V vacaciones, - libre). Ordinario: una lista por mes con un valor por dia (J jornada+horas, I intensiva+horas, R recuperacion+horas, F festivo, - no laborable). Enlaces vacios se muestran como proximamente.",
  "empresas": {
   "nexpoint": {
-   "nombre": "NexPoint Cartagena",
+   "nombre": "STR NexPoint",
    "logo": "assets/logos/nexpoint.svg",
    "logoFondo": "#0a364a",
    "turnos": {
@@ -611,7 +611,7 @@
    }
   },
   "repsol": {
-   "nombre": "Repsol Cartagena",
+   "nombre": "STR Repsol",
    "logo": [
     "assets/logos/repsol.svg",
     "https://www.repsol.com/content/dam/global/logotipos/repsol/logo-repsol.svg"
