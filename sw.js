@@ -1,6 +1,6 @@
 // Sube el numero de VERSION cada vez que cambies HTML, CSS o JS.
 // El archivo data/cuadrante.json NO depende de esto: siempre se pide primero al servidor.
-const VERSION = 'turnos-v1';
+const VERSION = 'turnos-v2';
 const SHELL = [
   './',
   'index.html',

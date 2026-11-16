@@ -10,12 +10,9 @@
   var datos = null;
   var hoy = new Date();
   var ymHoy = ym(hoy.getFullYear(), hoy.getMonth() + 1);
-  var estado = {
-    ym: ymHoy,
-    equipo: leer('equipo'),
-    vista: leer('vista') || 'mi'
-  };
+  var estado = { ym: ymHoy, vista: leer('vista') || 'mi' };
 
+  /* ---------- utilidades ---------- */
   function ym(y, m) { return y + '-' + (m < 10 ? '0' : '') + m; }
   function leer(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* sin almacenamiento */ } }
@@ -33,201 +30,292 @@
     return n;
   }
 
-  function turno(ymKey, equipo, dia) {
-    var mes = datos.meses[ymKey];
-    if (!mes || !mes[equipo]) return null;
-    var c = mes[equipo].charAt(dia - 1);
-    return c ? c : null;
-  }
-
   function diasDelMes(ymKey) {
     var p = ymKey.split('-');
     return new Date(+p[0], +p[1], 0).getDate();
   }
-
   function esFinde(ymKey, dia) {
     var p = ymKey.split('-');
     var d = new Date(+p[0], +p[1] - 1, dia).getDay();
     return d === 0 || d === 6;
   }
-
   function nombreMes(ymKey) {
     var p = ymKey.split('-');
     return MESES[+p[1] - 1] + ' ' + p[0];
   }
 
-  /* ---------- Tarjeta "Hoy" ---------- */
-  function pintarHoy() {
-    var cont = document.getElementById('hoy');
-    cont.textContent = '';
-    var d = hoy.getDate();
-    cont.appendChild(el('p', { class: 'fecha', text: DIA_LARGO[hoy.getDay()] + ' ' + d + ' de ' + MESES[hoy.getMonth()] }));
+  /* ---------- acceso a datos ---------- */
+  function turnoDe(emp, ymKey, equipo, dia) {
+    var mes = datos.empresas[emp].turnos.meses[ymKey];
+    if (!mes || !mes[equipo]) return null;
+    var c = mes[equipo].charAt(dia - 1);
+    return c ? c : null;
+  }
+  function ordinarioDe(emp, ymKey, dia) {
+    var s = datos.empresas[emp].ordinario.meses[ymKey];
+    if (!s) return null;
+    var c = s.charAt(dia - 1);
+    return c ? c : null;
+  }
 
-    var t = estado.equipo ? turno(ymHoy, estado.equipo, d) : null;
-    if (!estado.equipo) {
-      cont.appendChild(el('p', { class: 'grande', text: 'Elige tu equipo' }));
-    } else if (!t) {
-      cont.appendChild(el('p', { class: 'grande', text: 'Sin datos de hoy' }));
-    } else {
-      var g = el('p', { class: 'grande', text: NOMBRE[t] });
-      g.appendChild(el('small', { text: '  · Equipo ' + estado.equipo }));
-      cont.appendChild(g);
-    }
+  /* ---------- piezas comunes ---------- */
+  function cabecera(titulo, sub, atras) {
+    document.getElementById('titulo').textContent = titulo;
+    document.getElementById('sub').textContent = sub || '';
+    var a = document.getElementById('atras');
+    if (atras) { a.setAttribute('href', atras); a.hidden = false; } else { a.hidden = true; }
+    document.title = titulo + (sub ? ' · ' + sub : '');
+  }
 
-    var q = el('p', { class: 'quien' });
-    var alguno = false;
-    ['M', 'T', 'N'].forEach(function (s) {
-      var eqs = datos.equipos.filter(function (e) { return turno(ymHoy, e, d) === s; });
-      if (eqs.length) {
-        alguno = true;
-        q.appendChild(el('span', { text: NOMBRE[s] + ': ' + eqs.join(', ') }));
+  // Logo: si el archivo no existe, se muestra la inicial de la empresa.
+  function logo(emp, clase) {
+    var e = datos.empresas[emp];
+    var caja = el('div', { class: 'logo ' + (clase || '') });
+    var img = el('img', { src: e.logo, alt: e.nombre, loading: 'lazy' });
+    img.addEventListener('error', function () {
+      caja.textContent = '';
+      caja.classList.add('ph');
+      caja.appendChild(el('span', { text: e.nombre.charAt(0) }));
+    });
+    caja.appendChild(img);
+    return caja;
+  }
+
+  function bloqueEnlaces(emp, sec) {
+    var cont = el('section', { class: 'bloque' }, [el('h2', { text: 'Información' })]);
+    var cfg = (datos.empresas[emp].enlaces || {})[sec] || {};
+    var lista = el('div', { class: 'enlaces' });
+    [['convenio', 'Convenio colectivo'], ['faq', 'Preguntas frecuentes y dudas']].forEach(function (par) {
+      var url = cfg[par[0]];
+      if (url) {
+        lista.appendChild(el('a', { href: url, target: '_blank', rel: 'noopener', text: par[1] }));
+      } else {
+        lista.appendChild(el('span', { class: 'pronto', 'aria-disabled': 'true', text: par[1] + ' (próximamente)' }));
       }
     });
-    if (alguno) cont.appendChild(q);
+    cont.appendChild(lista);
+    return cont;
   }
 
-  /* ---------- Selector de equipo ---------- */
-  function pintarEquipos() {
-    var cont = document.getElementById('equipos');
-    cont.textContent = '';
-    datos.equipos.forEach(function (e) {
-      var b = el('button', { type: 'button', role: 'radio', 'aria-checked': String(estado.equipo === e), text: e });
-      b.addEventListener('click', function () {
-        estado.equipo = e;
-        guardar('equipo', e);
-        pintarTodo();
-      });
-      cont.appendChild(b);
-    });
+  function navMes(alCambiar) {
+    var titulo = el('strong', { text: nombreMes(estado.ym) });
+    function mover(delta) {
+      var p = estado.ym.split('-');
+      var f = new Date(+p[0], +p[1] - 1 + delta, 1);
+      estado.ym = ym(f.getFullYear(), f.getMonth() + 1);
+      titulo.textContent = nombreMes(estado.ym);
+      alCambiar();
+    }
+    var prev = el('button', { type: 'button', 'aria-label': 'Mes anterior', text: '‹' });
+    var next = el('button', { type: 'button', 'aria-label': 'Mes siguiente', text: '›' });
+    prev.addEventListener('click', function () { mover(-1); });
+    next.addEventListener('click', function () { mover(1); });
+    return el('nav', { class: 'mes-nav', 'aria-label': 'Cambiar de mes' }, [prev, titulo, next]);
   }
 
-  /* ---------- Vista: calendario del equipo ---------- */
-  function vistaMi() {
-    var cont = el('div');
-    if (!estado.equipo) {
-      cont.appendChild(el('p', { class: 'sin-datos', text: 'Elige tu equipo arriba para ver tu calendario.' }));
-      return cont;
-    }
-    if (!datos.meses[estado.ym]) {
-      cont.appendChild(el('p', { class: 'sin-datos', text: 'Aún no hay datos de este mes.' }));
-      return cont;
-    }
+  // Cuadricula mensual generica (lunes primero). codigo(d) devuelve el codigo del dia o null.
+  function cuadricula(ymKey, codigo) {
     var grid = el('div', { class: 'cal' });
     ['L', 'M', 'MI', 'J', 'V', 'S', 'D'].forEach(function (n) { grid.appendChild(el('div', { class: 'dn', text: n })); });
-
-    var p = estado.ym.split('-');
-    var primero = new Date(+p[0], +p[1] - 1, 1).getDay();
-    var hueco = (primero + 6) % 7;
+    var p = ymKey.split('-');
+    var hueco = (new Date(+p[0], +p[1] - 1, 1).getDay() + 6) % 7;
     for (var i = 0; i < hueco; i++) grid.appendChild(el('div', { class: 'c vacio' }));
-
-    var total = diasDelMes(estado.ym);
+    var total = diasDelMes(ymKey);
     for (var d = 1; d <= total; d++) {
-      var t = turno(estado.ym, estado.equipo, d);
+      var t = codigo(d);
       var clases = 'c';
-      if (esFinde(estado.ym, d)) clases += ' finde';
-      if (estado.ym === ymHoy && d === hoy.getDate()) clases += ' hoy-c';
+      if (esFinde(ymKey, d)) clases += ' finde';
+      if (ymKey === ymHoy && d === hoy.getDate()) clases += ' hoy-c';
       if (t && t !== '-') clases += ' ' + t;
-      var txt = t ? (t === '-' ? '·' : t) : '?';
       grid.appendChild(el('div', { class: clases }, [
         el('span', { class: 'd', text: String(d) }),
-        el('span', { class: 's', text: txt })
+        el('span', { class: 's', text: t ? (t === '-' ? '·' : t) : '?' })
       ]));
     }
-    cont.appendChild(grid);
-    return cont;
+    return grid;
   }
 
-  /* ---------- Vista: tabla A-E ---------- */
-  function vistaTabla() {
-    var cont = el('div');
-    if (!datos.meses[estado.ym]) {
-      cont.appendChild(el('p', { class: 'sin-datos', text: 'Aún no hay datos de este mes.' }));
-      return cont;
-    }
-    var p = estado.ym.split('-');
-    var total = diasDelMes(estado.ym);
-    var tabla = el('table', { class: 't' });
-    var thead = el('thead');
-    var f1 = el('tr', null, [el('th', { class: 'eq', rowspan: '2', text: '' })]);
-    var f2 = el('tr');
-    for (var d = 1; d <= total; d++) {
-      var fin = esFinde(estado.ym, d);
-      var esHoy = estado.ym === ymHoy && d === hoy.getDate();
-      var cls = (fin ? 'finde-h' : '') + (esHoy ? ' hoy-col' : '');
-      var dow = new Date(+p[0], +p[1] - 1, d).getDay();
-      f1.appendChild(el('th', { class: cls, text: String(d) }));
-      f2.appendChild(el('th', { class: cls, text: DIA_CORTO[dow] }));
-    }
-    thead.appendChild(f1);
-    thead.appendChild(f2);
-    tabla.appendChild(thead);
+  function sinDatos(texto) { return el('p', { class: 'sin-datos', text: texto }); }
 
-    var tbody = el('tbody');
-    datos.equipos.forEach(function (e) {
-      var tr = el('tr', { class: e === estado.equipo ? 'mi' : '' }, [el('th', { class: 'eq', text: e })]);
-      for (var d = 1; d <= total; d++) {
-        var t = turno(estado.ym, e, d);
-        var c = '';
-        if (esFinde(estado.ym, d)) c += ' finde';
-        if (t === 'V') c += ' V';
-        if (!t) c += ' sd';
-        if (estado.ym === ymHoy && d === hoy.getDate()) c += ' hoy-col';
-        var txt = t ? (t === '-' ? '' : t) : '?';
-        tr.appendChild(el('td', { class: c.trim(), text: txt }));
+  /* ---------- pantalla 1: inicio ---------- */
+  function pantallaInicio(app) {
+    cabecera('Cuadrantes', 'Elige tu empresa', null);
+    var cont = el('div', { class: 'tiles' });
+    Object.keys(datos.empresas).forEach(function (id) {
+      cont.appendChild(el('a', { class: 'tile', href: '#/' + id }, [
+        logo(id, 'grande'),
+        el('span', { class: 'tile-t', text: datos.empresas[id].nombre })
+      ]));
+    });
+    app.appendChild(cont);
+  }
+
+  /* ---------- pantalla 2: menu de la empresa ---------- */
+  function pantallaEmpresa(app, emp) {
+    cabecera(datos.empresas[emp].nombre, '', '#/');
+    app.appendChild(el('div', { class: 'banner' }, [logo(emp, 'grande')]));
+    app.appendChild(el('div', { class: 'tiles uno' }, [
+      el('a', { class: 'tile ancho', href: '#/' + emp + '/turnos' }, [
+        el('span', { class: 'tile-t', text: 'Cuadrante de turnos' }),
+        el('span', { class: 'tile-s', text: 'Tu turno de hoy y del mes' })
+      ]),
+      el('a', { class: 'tile ancho', href: '#/' + emp + '/ordinario' }, [
+        el('span', { class: 'tile-t', text: 'Calendario ordinario' }),
+        el('span', { class: 'tile-s', text: 'Jornada ordinaria y festivos' })
+      ])
+    ]));
+  }
+
+  /* ---------- pantalla 3a: cuadrante de turnos ---------- */
+  function pantallaTurnos(app, emp) {
+    var e = datos.empresas[emp];
+    var equipos = e.turnos.equipos;
+    var claveEq = 'equipo:' + emp;
+    var equipo = leer(claveEq);
+    if (equipos.indexOf(equipo) < 0) equipo = null;
+    cabecera('Cuadrante de turnos', e.nombre, '#/' + emp);
+
+    var cardHoy = el('section', { class: 'hoy', 'aria-live': 'polite' });
+    var chips = el('div', { class: 'chips', role: 'radiogroup', 'aria-label': 'Elegir equipo' });
+    var vista = el('div');
+    var btnMi = el('button', { type: 'button', role: 'tab', text: 'Mi calendario' });
+    var btnTabla = el('button', { type: 'button', role: 'tab', text: 'Tabla A–E' });
+
+    function pintarHoy() {
+      cardHoy.textContent = '';
+      var d = hoy.getDate();
+      cardHoy.appendChild(el('p', { class: 'fecha', text: DIA_LARGO[hoy.getDay()] + ' ' + d + ' de ' + MESES[hoy.getMonth()] }));
+      var t = equipo ? turnoDe(emp, ymHoy, equipo, d) : null;
+      if (!equipo) cardHoy.appendChild(el('p', { class: 'grande', text: 'Elige tu equipo' }));
+      else if (!t) cardHoy.appendChild(el('p', { class: 'grande', text: 'Sin datos de hoy' }));
+      else cardHoy.appendChild(el('p', { class: 'grande' }, [document.createTextNode(NOMBRE[t]), el('small', { text: '  · Equipo ' + equipo })]));
+      var q = el('p', { class: 'quien' });
+      var alguno = false;
+      ['M', 'T', 'N'].forEach(function (s) {
+        var eqs = equipos.filter(function (x) { return turnoDe(emp, ymHoy, x, d) === s; });
+        if (eqs.length) { alguno = true; q.appendChild(el('span', { text: NOMBRE[s] + ': ' + eqs.join(', ') })); }
+      });
+      if (alguno) cardHoy.appendChild(q);
+    }
+
+    function pintarEquipos() {
+      chips.textContent = '';
+      equipos.forEach(function (x) {
+        var b = el('button', { type: 'button', role: 'radio', 'aria-checked': String(equipo === x), text: x });
+        b.addEventListener('click', function () { equipo = x; guardar(claveEq, x); pintarHoy(); pintarEquipos(); pintarVista(); });
+        chips.appendChild(b);
+      });
+    }
+
+    function vistaMi() {
+      var c = el('div');
+      if (!equipo) { c.appendChild(sinDatos('Elige tu equipo arriba para ver tu calendario.')); return c; }
+      if (!e.turnos.meses[estado.ym]) { c.appendChild(sinDatos('Aún no hay datos de este mes.')); return c; }
+      c.appendChild(cuadricula(estado.ym, function (d) { return turnoDe(emp, estado.ym, equipo, d); }));
+      return c;
+    }
+
+    function vistaTabla() {
+      var c = el('div');
+      if (!e.turnos.meses[estado.ym]) { c.appendChild(sinDatos('Aún no hay datos de este mes.')); return c; }
+      var p = estado.ym.split('-');
+      var total = diasDelMes(estado.ym);
+      var f1 = el('tr', null, [el('th', { class: 'eq', rowspan: '2', text: '' })]);
+      var f2 = el('tr');
+      var d;
+      for (d = 1; d <= total; d++) {
+        var cls = (esFinde(estado.ym, d) ? 'finde-h' : '') + (estado.ym === ymHoy && d === hoy.getDate() ? ' hoy-col' : '');
+        f1.appendChild(el('th', { class: cls, text: String(d) }));
+        f2.appendChild(el('th', { class: cls, text: DIA_CORTO[new Date(+p[0], +p[1] - 1, d).getDay()] }));
       }
-      tbody.appendChild(tr);
+      var tbody = el('tbody');
+      equipos.forEach(function (x) {
+        var tr = el('tr', { class: x === equipo ? 'mi' : '' }, [el('th', { class: 'eq', text: x })]);
+        for (var k = 1; k <= total; k++) {
+          var t = turnoDe(emp, estado.ym, x, k);
+          var cc = '';
+          if (esFinde(estado.ym, k)) cc += ' finde';
+          if (t === 'V') cc += ' V';
+          if (!t) cc += ' sd';
+          if (estado.ym === ymHoy && k === hoy.getDate()) cc += ' hoy-col';
+          tr.appendChild(el('td', { class: cc.trim(), text: t ? (t === '-' ? '' : t) : '?' }));
+        }
+        tbody.appendChild(tr);
+      });
+      var tabla = el('table', { class: 't' }, [el('thead', null, [f1, f2]), tbody]);
+      c.appendChild(el('div', { class: 'tabla-wrap' }, [tabla]));
+      return c;
+    }
+
+    function pintarVista() {
+      vista.textContent = '';
+      vista.appendChild(estado.vista === 'tabla' ? vistaTabla() : vistaMi());
+      btnMi.setAttribute('aria-selected', String(estado.vista !== 'tabla'));
+      btnTabla.setAttribute('aria-selected', String(estado.vista === 'tabla'));
+    }
+    btnMi.addEventListener('click', function () { estado.vista = 'mi'; guardar('vista', 'mi'); pintarVista(); });
+    btnTabla.addEventListener('click', function () { estado.vista = 'tabla'; guardar('vista', 'tabla'); pintarVista(); });
+
+    var leyenda = el('ul', { class: 'leyenda' });
+    [['M', 'Mañana'], ['T', 'Tarde'], ['N', 'Noche'], ['V', 'V'], ['L', 'Libre']].forEach(function (par) {
+      leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] === 'L' ? '·' : par[0] }), document.createTextNode(' ' + par[1])]));
     });
-    tabla.appendChild(tbody);
-    cont.appendChild(el('div', { class: 'tabla-wrap' }, [tabla]));
-    return cont;
+
+    app.appendChild(cardHoy);
+    app.appendChild(el('section', { class: 'bloque' }, [el('h2', { text: 'Mi equipo' }), chips]));
+    app.appendChild(el('section', { class: 'bloque' }, [
+      navMes(pintarVista),
+      el('div', { class: 'vistas', role: 'tablist' }, [btnMi, btnTabla]),
+      vista,
+      leyenda
+    ]));
+    app.appendChild(bloqueEnlaces(emp, 'turnos'));
+    pintarHoy(); pintarEquipos(); pintarVista();
   }
 
-  /* ---------- Pintado general ---------- */
-  function pintarMes() {
-    document.getElementById('mes-titulo').textContent = nombreMes(estado.ym);
-    var vi = document.getElementById('vista');
-    vi.textContent = '';
-    vi.appendChild(estado.vista === 'tabla' ? vistaTabla() : vistaMi());
-    document.getElementById('v-mi').setAttribute('aria-selected', String(estado.vista !== 'tabla'));
-    document.getElementById('v-tabla').setAttribute('aria-selected', String(estado.vista === 'tabla'));
-  }
-
-  function pintarEnlaces() {
-    var cont = document.getElementById('enlaces');
-    cont.textContent = '';
-    (datos.enlaces || []).forEach(function (e) {
-      cont.appendChild(el('a', { href: e.url, target: '_blank', rel: 'noopener', text: e.texto }));
+  /* ---------- pantalla 3b: calendario ordinario ---------- */
+  function pantallaOrdinario(app, emp) {
+    var e = datos.empresas[emp];
+    cabecera('Calendario ordinario', e.nombre, '#/' + emp);
+    var vista = el('div');
+    function pintar() {
+      vista.textContent = '';
+      if (!e.ordinario.meses[estado.ym]) { vista.appendChild(sinDatos('Aún no hay datos de este mes.')); return; }
+      vista.appendChild(cuadricula(estado.ym, function (d) { return ordinarioDe(emp, estado.ym, d); }));
+    }
+    var leyenda = el('ul', { class: 'leyenda' });
+    [['J', 'Jornada'], ['F', 'Festivo'], ['L', 'Libre']].forEach(function (par) {
+      leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] === 'L' ? '·' : par[0] }), document.createTextNode(' ' + par[1])]));
     });
+    app.appendChild(el('section', { class: 'bloque' }, [navMes(pintar), vista, leyenda]));
+    app.appendChild(bloqueEnlaces(emp, 'ordinario'));
+    pintar();
   }
 
-  function pintarTodo() {
-    pintarHoy();
-    pintarEquipos();
-    pintarMes();
+  /* ---------- router ---------- */
+  function render() {
+    var h = location.hash.replace(/^#\/?/, '');
+    var p = h ? h.split('/') : [];
+    var app = document.getElementById('app');
+    app.textContent = '';
+    var emp = p[0] && datos.empresas[p[0]] ? p[0] : null;
+    if (!emp) return pantallaInicio(app);
+    if (p[1] === 'turnos') return pantallaTurnos(app, emp);
+    if (p[1] === 'ordinario') return pantallaOrdinario(app, emp);
+    return pantallaEmpresa(app, emp);
   }
 
-  function moverMes(delta) {
-    var p = estado.ym.split('-');
-    var f = new Date(+p[0], +p[1] - 1 + delta, 1);
-    estado.ym = ym(f.getFullYear(), f.getMonth() + 1);
-    pintarMes();
-  }
-
-  function iniciar() {
-    document.getElementById('lugar').textContent = datos.lugar || '';
-    document.getElementById('prev').addEventListener('click', function () { moverMes(-1); });
-    document.getElementById('next').addEventListener('click', function () { moverMes(1); });
-    document.getElementById('v-mi').addEventListener('click', function () { estado.vista = 'mi'; guardar('vista', 'mi'); pintarMes(); });
-    document.getElementById('v-tabla').addEventListener('click', function () { estado.vista = 'tabla'; guardar('vista', 'tabla'); pintarMes(); });
-    pintarEnlaces();
-    pintarTodo();
-  }
+  window.addEventListener('hashchange', function () {
+    estado.ym = ymHoy;
+    render();
+    window.scrollTo(0, 0);
+  });
 
   fetch('data/cuadrante.json', { cache: 'no-store' })
     .then(function (r) { return r.json(); })
-    .then(function (j) { datos = j; iniciar(); })
+    .then(function (j) { datos = j; render(); })
     .catch(function () {
-      document.getElementById('hoy').textContent = 'No se pudo cargar el cuadrante. Comprueba la conexión.';
+      document.getElementById('app').textContent = 'No se pudo cargar el cuadrante. Comprueba la conexión.';
     });
 
   if ('serviceWorker' in navigator) {

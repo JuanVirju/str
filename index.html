@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b3d91">
   <meta name="robots" content="noindex">
-  <title>Cuadrante de turnos · Cartagena</title>
+  <title>Cuadrantes · Cartagena</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -15,46 +15,12 @@
 </head>
 <body>
   <header class="cab">
-    <h1>Cuadrante de turnos</h1>
-    <p id="lugar">Cartagena</p>
+    <a id="atras" class="atras" href="#/" hidden>‹ Atrás</a>
+    <h1 id="titulo">Cuadrantes</h1>
+    <p id="sub"></p>
   </header>
 
-  <main>
-    <section id="hoy" class="hoy" aria-live="polite"></section>
-
-    <section class="bloque">
-      <h2>Mi equipo</h2>
-      <div id="equipos" class="chips" role="radiogroup" aria-label="Elegir equipo"></div>
-    </section>
-
-    <section class="bloque">
-      <nav class="mes-nav" aria-label="Cambiar de mes">
-        <button id="prev" aria-label="Mes anterior">‹</button>
-        <strong id="mes-titulo"></strong>
-        <button id="next" aria-label="Mes siguiente">›</button>
-      </nav>
-
-      <div class="vistas" role="tablist">
-        <button id="v-mi" role="tab">Mi calendario</button>
-        <button id="v-tabla" role="tab">Tabla A–E</button>
-      </div>
-
-      <div id="vista"></div>
-
-      <ul class="leyenda">
-        <li><span class="p M">M</span> Mañana</li>
-        <li><span class="p T">T</span> Tarde</li>
-        <li><span class="p N">N</span> Noche</li>
-        <li><span class="p V">V</span> V</li>
-        <li><span class="p L">·</span> Libre</li>
-      </ul>
-    </section>
-
-    <section class="bloque">
-      <h2>Enlaces</h2>
-      <div id="enlaces" class="enlaces"></div>
-    </section>
-  </main>
+  <main id="app"></main>
 
   <footer class="pie">
     <p>Versión de demostración. Consulta siempre el cuadrante oficial de la empresa.</p>
