@@ -192,7 +192,7 @@
     }
     app.appendChild(el('div', { class: 'tiles uno' }, [
       boton('turnos', 'Cuadrante de turnos'),
-      boton('ordinario', 'Calendario ordinario')
+      boton('ordinario', 'Calendario de ordinaria')
     ]));
     app.appendChild(bloqueEnlaces(emp, 'turnos'));
   }
@@ -201,7 +201,7 @@
   function pantallaMeses(app, emp, sec) {
     var e = datos.empresas[emp];
     var meses = Object.keys(sec === 'turnos' ? e.turnos.meses : e.ordinario.meses).sort();
-    cabecera(sec === 'turnos' ? 'Cuadrante de turnos' : 'Calendario ordinario', e.nombre, '#/' + emp, emp);
+    cabecera(sec === 'turnos' ? 'Cuadrante de turnos' : 'Calendario de ordinaria', e.nombre, '#/' + emp, emp);
     var anio = null, rejilla = null;
     meses.forEach(function (k) {
       if (k.slice(0, 4) !== anio) {
