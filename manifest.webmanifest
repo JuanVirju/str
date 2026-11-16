@@ -1,6 +1,6 @@
 {
-  "name": "Cuadrante de turnos · Cartagena",
-  "short_name": "Turnos",
+  "name": "STR · Cuadrantes",
+  "short_name": "STR",
   "description": "Consulta del cuadrante de turnos",
   "lang": "es",
   "start_url": "./",
