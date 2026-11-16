@@ -1,19 +1,26 @@
-// Sube el numero de VERSION cada vez que cambies HTML, CSS o JS.
-// El archivo data/cuadrante.json NO depende de esto: siempre se pide primero al servidor.
-const VERSION = 'turnos-v2';
+// Sube el numero de VERSION cada vez que cambies la logica del service worker.
+// Estrategia: red primero (siempre la version mas nueva) y, si no hay conexion
+// o tarda mas de 4 s, se usa la copia guardada en el movil.
+const VERSION = 'turnos-v3';
+const ESPERA_MS = 4000;
 const SHELL = [
   './',
   'index.html',
   'styles.css',
   'app.js',
   'manifest.webmanifest',
+  'data/cuadrante.json',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches.open(VERSION)
+      .then((c) => Promise.all(SHELL.map((u) => c.add(new Request(u, { cache: 'reload' })).catch(() => {}))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (e) => {
@@ -24,37 +31,33 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+function conLimite(promesa, ms) {
+  return new Promise((ok, ko) => {
+    const t = setTimeout(() => ko(new Error('tiempo')), ms);
+    promesa.then((r) => { clearTimeout(t); ok(r); }, (e) => { clearTimeout(t); ko(e); });
+  });
+}
+
+async function redPrimero(req) {
+  const cache = await caches.open(VERSION);
+  try {
+    const res = await conLimite(fetch(req.url, { cache: 'no-cache' }), ESPERA_MS);
+    if (res.ok) cache.put(req.url, res.clone());
+    return res;
+  } catch (err) {
+    const copia = await cache.match(req.url, { ignoreSearch: true });
+    if (copia) return copia;
+    if (req.mode === 'navigate') {
+      const inicio = (await cache.match('./')) || (await cache.match('index.html'));
+      if (inicio) return inicio;
+    }
+    throw err;
+  }
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-  if (url.origin !== location.origin) return;
-
-  // Datos: red primero, cache solo si no hay conexion
-  if (url.pathname.includes('/data/')) {
-    e.respondWith(
-      fetch(req, { cache: 'no-store' })
-        .then((res) => {
-          const copia = res.clone();
-          caches.open(VERSION).then((c) => c.put(req, copia));
-          return res;
-        })
-        .catch(() => caches.match(req))
-    );
-    return;
-  }
-
-  // Resto: cache primero y se refresca en segundo plano
-  e.respondWith(
-    caches.match(req).then((enCache) => {
-      const red = fetch(req)
-        .then((res) => {
-          const copia = res.clone();
-          caches.open(VERSION).then((c) => c.put(req, copia));
-          return res;
-        })
-        .catch(() => enCache);
-      return enCache || red;
-    })
-  );
+  if (new URL(req.url).origin !== location.origin) return;
+  e.respondWith(redPrimero(req));
 });
