@@ -217,3 +217,13 @@ table.t { touch-action: pan-x pan-y; }
 .tiles.uno .tile-t { font-size: 1rem; }
 .banner { margin-bottom: 14px; }
 .tiles.uno + .bloque { margin-top: 14px; }
+/* Informacion: discreta, por debajo de los botones principales */
+.bloque.info { background: transparent; border: none; padding: 4px 2px; }
+.bloque.info h2 { font-size: .8rem; font-weight: 600; color: #6b7080; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+.bloque.info .enlaces { gap: 6px; }
+.bloque.info .enlaces a {
+  background: #fff; color: var(--azul); border: 1px solid var(--borde); font-weight: 500; font-size: .92rem;
+  min-height: 42px; padding: 10px 12px; border-radius: 10px; text-align: left;
+}
+.bloque.info .enlaces a::after { content: " ›"; float: right; font-weight: 700; }
+.bloque.info .pronto { min-height: 42px; padding: 10px 12px; font-size: .92rem; font-weight: 500; text-align: left; border-radius: 10px; }

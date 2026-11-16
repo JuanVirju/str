@@ -110,7 +110,7 @@
   }
 
   function bloqueEnlaces(emp, sec) {
-    var cont = el('section', { class: 'bloque' }, [el('h2', { text: 'Información' })]);
+    var cont = el('section', { class: 'bloque info' }, [el('h2', { text: 'Información' })]);
     var cfg = (datos.empresas[emp].enlaces || {})[sec] || {};
     var lista = el('div', { class: 'enlaces' });
     [['convenio', 'Convenio colectivo'], ['faq', 'Preguntas frecuentes y dudas']].forEach(function (par) {
