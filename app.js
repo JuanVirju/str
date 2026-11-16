@@ -375,8 +375,7 @@
     var f2 = el('tr');
     var d;
     for (d = 1; d <= total; d++) {
-      var cls = (esFinde(k, d) ? 'finde-h' : '') + (esFestivo(emp, k, d) ? ' fest-h' : '') +
-        (k === ymHoy && d === hoy.getDate() ? ' hoy-col' : '');
+      var cls = (esFinde(k, d) ? 'finde-h' : '') + (esFestivo(emp, k, d) ? ' fest-h' : '');
       f1.appendChild(el('th', { class: cls, text: String(d) }));
       f2.appendChild(el('th', { class: cls, text: DIA_CORTO[new Date(+p[0], +p[1] - 1, d).getDay()] }));
     }
@@ -389,7 +388,6 @@
         var cc = '';
         if (esFinde(k, i)) cc += ' finde';
         if (t === 'V') cc += ' V';
-        if (k === ymHoy && i === hoy.getDate()) cc += ' hoy-col';
         if (notas[clNota(emp, k, i, x)]) cc += ' nota-c';
         var td = el('td', { class: cc.trim(), text: !t || t === '-' ? '' : t });
         td.setAttribute('data-d', String(i)); td.setAttribute('data-eq', x);

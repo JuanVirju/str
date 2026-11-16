@@ -100,7 +100,6 @@ table.t td.finde { background: var(--finde); color: #fff; }
 table.t td.V { color: var(--rojo); }
 table.t td.finde.V { color: #ffb3b3; }
 table.t td { color: #0a2a6b; }
-table.t .hoy-col { box-shadow: inset 0 0 0 3px var(--rojo); }
 table.t tr.mi th.eq { background: var(--azul); color: #fff; }
 table.t td.sd { color: #999; font-weight: 400; background: #f3f3f3; }
 
