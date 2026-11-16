@@ -118,7 +118,13 @@ table.t td.sd { color: #999; font-weight: 400; background: #f3f3f3; }
   display: block; padding: 14px; background: var(--azul); color: #fff; text-decoration: none;
   border-radius: 12px; font-weight: 600; text-align: center; min-height: 48px;
 }
-.cab .atras { display: inline-block; color: #fff; text-decoration: none; font-weight: 600; padding: 4px 0 8px; }
+.cab-fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; min-height: 44px; }
+.cab .atras {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; color: #fff; text-decoration: none;
+  font-weight: 700; border: 2px solid #fff; border-radius: 999px; background: rgba(255,255,255,.12);
+}
+.cab .atras:active { background: rgba(255,255,255,.3); }
+.logo.peque { height: 44px; width: 130px; padding: 6px 10px; border-radius: 10px; }
 .cab .atras[hidden] { display: none; }
 
 /* Inicio y menu */
@@ -181,3 +187,6 @@ table.t thead th.fest-h { background: #d68a4a; color: #fff; }
 .mes-n { font-size: 1.8rem; font-weight: 800; line-height: 1; }
 .mes-t { font-size: .95rem; text-transform: capitalize; }
 .cab h1::first-letter { text-transform: uppercase; }
+
+table.t { touch-action: pan-x pan-y; }
+.tabla-wrap { -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }

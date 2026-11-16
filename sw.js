@@ -1,7 +1,7 @@
 // Sube el numero de VERSION cada vez que cambies la logica del service worker.
 // Estrategia: red primero (siempre la version mas nueva) y, si no hay conexion
 // o tarda mas de 4 s, se usa la copia guardada en el movil.
-const VERSION = 'turnos-v4';
+const VERSION = 'turnos-v5';
 const ESPERA_MS = 4000;
 const SHELL = [
   './',

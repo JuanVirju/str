@@ -74,11 +74,15 @@
   }
 
   /* ---------- piezas comunes ---------- */
-  function cabecera(titulo, sub, atras) {
+  function cabecera(titulo, sub, atras, emp) {
     document.getElementById('titulo').textContent = titulo;
-    document.getElementById('sub').textContent = sub || '';
+    // Con logo en la cabecera no hace falta repetir el nombre de la empresa debajo.
+    document.getElementById('sub').textContent = emp ? '' : (sub || '');
     var a = document.getElementById('atras');
     if (atras) { a.setAttribute('href', atras); a.hidden = false; } else { a.hidden = true; }
+    var cl = document.getElementById('cab-logo');
+    cl.textContent = '';
+    if (emp) cl.appendChild(logo(emp, 'peque'));
     document.title = titulo + (sub ? ' · ' + sub : '');
   }
 
@@ -178,7 +182,7 @@
   function pantallaMeses(app, emp, sec) {
     var e = datos.empresas[emp];
     var meses = Object.keys(sec === 'turnos' ? e.turnos.meses : e.ordinario.meses).sort();
-    cabecera(sec === 'turnos' ? 'Cuadrante de turnos' : 'Calendario ordinario', e.nombre, '#/' + emp);
+    cabecera(sec === 'turnos' ? 'Cuadrante de turnos' : 'Calendario ordinario', e.nombre, '#/' + emp, emp);
     var anio = null, rejilla = null;
     meses.forEach(function (k) {
       if (k.slice(0, 4) !== anio) {
@@ -201,7 +205,7 @@
   function pantallaMesTurnos(app, emp, k) {
     var e = datos.empresas[emp];
     var equipos = e.turnos.equipos;
-    cabecera(nombreMes(k), e.nombre, '#/' + emp + '/turnos');
+    cabecera(nombreMes(k), e.nombre, '#/' + emp + '/turnos', emp);
     if (!e.turnos.meses[k]) { app.appendChild(sinDatos('Aún no hay datos de este mes.')); return; }
     var p = k.split('-');
     var total = diasDelMes(k);
@@ -232,13 +236,13 @@
     [['M', 'Mañana'], ['T', 'Tarde'], ['N', 'Noche'], ['V', 'Vacaciones'], ['fest', 'Festivo']].forEach(function (par) {
       leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] === 'fest' ? '' : par[0] }), document.createTextNode(' ' + par[1])]));
     });
-    app.appendChild(el('section', { class: 'bloque' }, [el('div', { class: 'tabla-wrap' }, [tabla]), leyenda]));
+    app.appendChild(el('section', { class: 'bloque' }, [el('div', { class: 'tabla-wrap' }, [tabla]), el('p', { class: 'nota', text: 'Desliza hacia los lados para ver todos los días →' }), leyenda]));
   }
 
   /* ---------- pantalla 4b: un mes de ordinario ---------- */
   function pantallaMesOrdinario(app, emp, k) {
     var e = datos.empresas[emp];
-    cabecera(nombreMes(k), e.nombre, '#/' + emp + '/ordinario');
+    cabecera(nombreMes(k), e.nombre, '#/' + emp + '/ordinario', emp);
     var mes = e.ordinario.meses[k];
     if (!mes) { app.appendChild(sinDatos('Aún no hay datos de este mes.')); return; }
     var leyenda = el('ul', { class: 'leyenda' });
