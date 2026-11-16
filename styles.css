@@ -211,3 +211,8 @@ table.t { touch-action: pan-x pan-y; }
 .cal .c.solo.J { background: #fff; }
 .cal .c.solo.finde:not(.F) { background: #c5c9d3; border-color: #aab0bd; }
 .cal .c.solo.finde:not(.F) .d { color: #4a4f5c; }
+/* Menu de empresa: dos botones compactos, uno al lado del otro */
+.tiles.uno { grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile.ancho { min-height: 64px; align-items: center; justify-content: center; text-align: center; padding: 10px 8px; border-radius: 14px; }
+.tiles.uno .tile-t { font-size: 1rem; }
+.banner { margin-bottom: 14px; }
