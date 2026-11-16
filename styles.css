@@ -167,3 +167,17 @@ table.t thead th.fest-h { background: #d68a4a; color: #fff; }
 .lista li:last-child { border-bottom: none; }
 
 .pie { text-align: center; color: #666; font-size: .8rem; padding: 6px 16px 22px; }
+
+/* Lista de meses */
+.anio { font-size: 1.1rem; margin: 6px 4px 8px; color: var(--azul); }
+.meses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.mes {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-height: 92px; background: #fff; border: 2px solid var(--azul); border-radius: 16px;
+  text-decoration: none; color: var(--azul);
+}
+.mes:active { background: var(--azul-claro); }
+.mes.actual { background: var(--azul); color: #fff; }
+.mes-n { font-size: 1.8rem; font-weight: 800; line-height: 1; }
+.mes-t { font-size: .95rem; text-transform: capitalize; }
+.cab h1::first-letter { text-transform: uppercase; }

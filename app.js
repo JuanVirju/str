@@ -13,8 +13,7 @@
   var simulado = /[?&]hoy=(\d{4})-(\d{2})-(\d{2})/.exec(location.search);
   if (simulado) hoy = new Date(+simulado[1], +simulado[2] - 1, +simulado[3], 12, 0, 0);
   var ymHoy = ym(hoy.getFullYear(), hoy.getMonth() + 1);
-  var estado = { ym: ymHoy, vista: leer('vista') || 'mi' };
-
+  
   /* ---------- utilidades ---------- */
   function ym(y, m) { return y + '-' + (m < 10 ? '0' : '') + m; }
   function leer(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -47,14 +46,6 @@
     return MESES[+p[1] - 1] + ' ' + p[0];
   }
 
-  // Mes con el que se abre una pantalla: el actual si hay datos; si no, el siguiente con datos (o el ultimo).
-  function mesInicial(claves) {
-    if (!claves.length) return ymHoy;
-    claves = claves.slice().sort();
-    if (claves.indexOf(ymHoy) >= 0) return ymHoy;
-    for (var i = 0; i < claves.length; i++) if (claves[i] > ymHoy) return claves[i];
-    return claves[claves.length - 1];
-  }
   function fechaLarga(y, m, d) {
     return DIA_LARGO[new Date(y, m - 1, d).getDay()] + ' ' + d + ' de ' + MESES[m - 1] + ' de ' + y;
   }
@@ -128,22 +119,6 @@
     return cont;
   }
 
-  function navMes(alCambiar) {
-    var titulo = el('strong', { text: nombreMes(estado.ym) });
-    function mover(delta) {
-      var p = estado.ym.split('-');
-      var f = new Date(+p[0], +p[1] - 1 + delta, 1);
-      estado.ym = ym(f.getFullYear(), f.getMonth() + 1);
-      titulo.textContent = nombreMes(estado.ym);
-      alCambiar();
-    }
-    var prev = el('button', { type: 'button', 'aria-label': 'Mes anterior', text: '‹' });
-    var next = el('button', { type: 'button', 'aria-label': 'Mes siguiente', text: '›' });
-    prev.addEventListener('click', function () { mover(-1); });
-    next.addEventListener('click', function () { mover(1); });
-    return el('nav', { class: 'mes-nav', 'aria-label': 'Cambiar de mes' }, [prev, titulo, next]);
-  }
-
   // Cuadricula mensual generica (lunes primero). codigo(d) devuelve el codigo del dia o null.
   // opts.fest(d) -> bool marca festivo; opts.texto(codigo) -> texto grande de la celda.
   function cuadricula(ymKey, codigo, opts) {
@@ -191,200 +166,91 @@
     app.appendChild(el('div', { class: 'banner' }, [logo(emp, 'grande')]));
     app.appendChild(el('div', { class: 'tiles uno' }, [
       el('a', { class: 'tile ancho', href: '#/' + emp + '/turnos' }, [
-        el('span', { class: 'tile-t', text: 'Cuadrante de turnos' }),
-        el('span', { class: 'tile-s', text: 'Tu turno de hoy y del mes' })
+        el('span', { class: 'tile-t', text: 'Cuadrante de turnos' })
       ]),
       el('a', { class: 'tile ancho', href: '#/' + emp + '/ordinario' }, [
-        el('span', { class: 'tile-t', text: 'Calendario ordinario' }),
-        el('span', { class: 'tile-s', text: 'Jornada ordinaria y festivos' })
+        el('span', { class: 'tile-t', text: 'Calendario ordinario' })
       ])
     ]));
   }
 
-  /* ---------- pantalla 3a: cuadrante de turnos ---------- */
-  function pantallaTurnos(app, emp) {
+  /* ---------- pantalla 3: lista de meses (turnos u ordinario) ---------- */
+  function pantallaMeses(app, emp, sec) {
     var e = datos.empresas[emp];
-    var equipos = e.turnos.equipos;
-    var claveEq = 'equipo:' + emp;
-    var equipo = leer(claveEq);
-    if (equipos.indexOf(equipo) < 0) equipo = null;
-    cabecera('Cuadrante de turnos', e.nombre, '#/' + emp);
-    estado.ym = mesInicial(Object.keys(e.turnos.meses));
-
-    var cardHoy = el('section', { class: 'hoy', 'aria-live': 'polite' });
-    var chips = el('div', { class: 'chips', role: 'radiogroup', 'aria-label': 'Elegir equipo' });
-    var vista = el('div');
-    var btnMi = el('button', { type: 'button', role: 'tab', text: 'Mi calendario' });
-    var btnTabla = el('button', { type: 'button', role: 'tab', text: 'Tabla A–E' });
-
-    function pintarHoy() {
-      cardHoy.textContent = '';
-      var d = hoy.getDate();
-      cardHoy.appendChild(el('p', { class: 'fecha', text: DIA_LARGO[hoy.getDay()] + ' ' + d + ' de ' + MESES[hoy.getMonth()] }));
-      var t = equipo ? turnoDe(emp, ymHoy, equipo, d) : null;
-      if (!equipo) cardHoy.appendChild(el('p', { class: 'grande', text: 'Elige tu equipo' }));
-      else if (!t) {
-        cardHoy.appendChild(el('p', { class: 'grande', text: 'Sin datos de hoy' }));
-        var claves = Object.keys(e.turnos.meses).sort();
-        if (claves.length && claves[0] > ymHoy) {
-          var pp = claves[0].split('-');
-          cardHoy.appendChild(el('p', { class: 'quien', text: 'El cuadrante empieza el ' + fechaLarga(+pp[0], +pp[1], 1) + '.' }));
-        }
+    var meses = Object.keys(sec === 'turnos' ? e.turnos.meses : e.ordinario.meses).sort();
+    cabecera(sec === 'turnos' ? 'Cuadrante de turnos' : 'Calendario ordinario', e.nombre, '#/' + emp);
+    var anio = null, rejilla = null;
+    meses.forEach(function (k) {
+      if (k.slice(0, 4) !== anio) {
+        anio = k.slice(0, 4);
+        app.appendChild(el('h2', { class: 'anio', text: anio }));
+        rejilla = el('div', { class: 'meses' });
+        app.appendChild(rejilla);
       }
-      else cardHoy.appendChild(el('p', { class: 'grande' }, [document.createTextNode(NOMBRE[t]), el('small', { text: '  · Equipo ' + equipo })]));
-      var q = el('p', { class: 'quien' });
-      var alguno = false;
-      ['M', 'T', 'N'].forEach(function (s) {
-        var eqs = equipos.filter(function (x) { return turnoDe(emp, ymHoy, x, d) === s; });
-        if (eqs.length) { alguno = true; q.appendChild(el('span', { text: NOMBRE[s] + ': ' + eqs.join(', ') })); }
-      });
-      if (alguno) cardHoy.appendChild(q);
-    }
-
-    function pintarEquipos() {
-      chips.textContent = '';
-      equipos.forEach(function (x) {
-        var b = el('button', { type: 'button', role: 'radio', 'aria-checked': String(equipo === x), text: x });
-        b.addEventListener('click', function () { equipo = x; guardar(claveEq, x); pintarHoy(); pintarEquipos(); pintarVista(); });
-        chips.appendChild(b);
-      });
-    }
-
-    function vistaMi() {
-      var c = el('div');
-      if (!equipo) { c.appendChild(sinDatos('Elige tu equipo arriba para ver tu calendario.')); return c; }
-      if (!e.turnos.meses[estado.ym]) { c.appendChild(sinDatos('Aún no hay datos de este mes.')); return c; }
-      c.appendChild(cuadricula(estado.ym, function (d) { return turnoDe(emp, estado.ym, equipo, d); },
-        { fest: function (d) { return esFestivo(emp, estado.ym, d); } }));
-      return c;
-    }
-
-    function vistaTabla() {
-      var c = el('div');
-      if (!e.turnos.meses[estado.ym]) { c.appendChild(sinDatos('Aún no hay datos de este mes.')); return c; }
-      var p = estado.ym.split('-');
-      var total = diasDelMes(estado.ym);
-      var f1 = el('tr', null, [el('th', { class: 'eq', rowspan: '2', text: '' })]);
-      var f2 = el('tr');
-      var d;
-      for (d = 1; d <= total; d++) {
-        var cls = (esFinde(estado.ym, d) ? 'finde-h' : '') + (esFestivo(emp, estado.ym, d) ? ' fest-h' : '') +
-          (estado.ym === ymHoy && d === hoy.getDate() ? ' hoy-col' : '');
-        f1.appendChild(el('th', { class: cls, text: String(d) }));
-        f2.appendChild(el('th', { class: cls, text: DIA_CORTO[new Date(+p[0], +p[1] - 1, d).getDay()] }));
-      }
-      var tbody = el('tbody');
-      equipos.forEach(function (x) {
-        var tr = el('tr', { class: x === equipo ? 'mi' : '' }, [el('th', { class: 'eq', text: x })]);
-        for (var k = 1; k <= total; k++) {
-          var t = turnoDe(emp, estado.ym, x, k);
-          var cc = '';
-          if (esFinde(estado.ym, k)) cc += ' finde';
-          if (t === 'V') cc += ' V';
-          if (!t) cc += ' sd';
-          if (estado.ym === ymHoy && k === hoy.getDate()) cc += ' hoy-col';
-          tr.appendChild(el('td', { class: cc.trim(), text: t ? (t === '-' ? '' : t) : '?' }));
-        }
-        tbody.appendChild(tr);
-      });
-      var tabla = el('table', { class: 't' }, [el('thead', null, [f1, f2]), tbody]);
-      c.appendChild(el('div', { class: 'tabla-wrap' }, [tabla]));
-      return c;
-    }
-
-    function pintarVista() {
-      vista.textContent = '';
-      vista.appendChild(estado.vista === 'tabla' ? vistaTabla() : vistaMi());
-      btnMi.setAttribute('aria-selected', String(estado.vista !== 'tabla'));
-      btnTabla.setAttribute('aria-selected', String(estado.vista === 'tabla'));
-    }
-    btnMi.addEventListener('click', function () { estado.vista = 'mi'; guardar('vista', 'mi'); pintarVista(); });
-    btnTabla.addEventListener('click', function () { estado.vista = 'tabla'; guardar('vista', 'tabla'); pintarVista(); });
-
-    var leyenda = el('ul', { class: 'leyenda' });
-    [['M', 'Mañana'], ['T', 'Tarde'], ['N', 'Noche'], ['V', 'Vacaciones'], ['L', 'Libre'], ['fest', 'Festivo']].forEach(function (par) {
-      leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] === 'L' ? '·' : (par[0] === 'fest' ? '' : par[0]) }), document.createTextNode(' ' + par[1])]));
+      var m = +k.slice(5) - 1;
+      var cls = 'mes' + (k === ymHoy ? ' actual' : '');
+      rejilla.appendChild(el('a', { class: cls, href: '#/' + emp + '/' + sec + '/' + k }, [
+        el('span', { class: 'mes-n', text: String(m + 1) }),
+        el('span', { class: 'mes-t', text: MESES[m] })
+      ]));
     });
-
-    app.appendChild(cardHoy);
-    app.appendChild(el('section', { class: 'bloque' }, [el('h2', { text: 'Mi equipo' }), chips]));
-    app.appendChild(el('section', { class: 'bloque' }, [
-      navMes(pintarVista),
-      el('div', { class: 'vistas', role: 'tablist' }, [btnMi, btnTabla]),
-      vista,
-      leyenda
-    ]));
-    app.appendChild(bloqueEnlaces(emp, 'turnos'));
-    pintarHoy(); pintarEquipos(); pintarVista();
+    app.appendChild(bloqueEnlaces(emp, sec));
   }
 
-  /* ---------- pantalla 3b: calendario ordinario ---------- */
-  function pantallaOrdinario(app, emp) {
+  /* ---------- pantalla 4a: un mes de turnos, los 5 equipos ---------- */
+  function pantallaMesTurnos(app, emp, k) {
     var e = datos.empresas[emp];
-    cabecera('Calendario ordinario', e.nombre, '#/' + emp);
-    estado.ym = mesInicial(Object.keys(e.ordinario.meses));
-    var vista = el('div');
-    function pintar() {
-      vista.textContent = '';
-      var mes = e.ordinario.meses[estado.ym];
-      if (mes) {
-        vista.appendChild(cuadricula(estado.ym, function (d) { return mes[d - 1]; }, {
-          texto: function (t) { return t.charAt(0) === 'F' ? 'F' : fmtHoras(t); }
-        }));
-      } else {
-        vista.appendChild(sinDatos('Aún no hay datos de este mes.'));
-      }
-      pintarFest();
-      pintarRes();
+    var equipos = e.turnos.equipos;
+    cabecera(nombreMes(k), e.nombre, '#/' + emp + '/turnos');
+    if (!e.turnos.meses[k]) { app.appendChild(sinDatos('Aún no hay datos de este mes.')); return; }
+    var p = k.split('-');
+    var total = diasDelMes(k);
+    var f1 = el('tr', null, [el('th', { class: 'eq', rowspan: '2', text: '' })]);
+    var f2 = el('tr');
+    var d;
+    for (d = 1; d <= total; d++) {
+      var cls = (esFinde(k, d) ? 'finde-h' : '') + (esFestivo(emp, k, d) ? ' fest-h' : '') +
+        (k === ymHoy && d === hoy.getDate() ? ' hoy-col' : '');
+      f1.appendChild(el('th', { class: cls, text: String(d) }));
+      f2.appendChild(el('th', { class: cls, text: DIA_CORTO[new Date(+p[0], +p[1] - 1, d).getDay()] }));
     }
+    var tbody = el('tbody');
+    equipos.forEach(function (x) {
+      var tr = el('tr', null, [el('th', { class: 'eq', text: x })]);
+      for (var i = 1; i <= total; i++) {
+        var t = turnoDe(emp, k, x, i);
+        var cc = '';
+        if (esFinde(k, i)) cc += ' finde';
+        if (t === 'V') cc += ' V';
+        if (k === ymHoy && i === hoy.getDate()) cc += ' hoy-col';
+        tr.appendChild(el('td', { class: cc.trim(), text: !t || t === '-' ? '' : t }));
+      }
+      tbody.appendChild(tr);
+    });
+    var tabla = el('table', { class: 't' }, [el('thead', null, [f1, f2]), tbody]);
+    var leyenda = el('ul', { class: 'leyenda' });
+    [['M', 'Mañana'], ['T', 'Tarde'], ['N', 'Noche'], ['V', 'Vacaciones'], ['fest', 'Festivo']].forEach(function (par) {
+      leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] === 'fest' ? '' : par[0] }), document.createTextNode(' ' + par[1])]));
+    });
+    app.appendChild(el('section', { class: 'bloque' }, [el('div', { class: 'tabla-wrap' }, [tabla]), leyenda]));
+  }
+
+  /* ---------- pantalla 4b: un mes de ordinario ---------- */
+  function pantallaMesOrdinario(app, emp, k) {
+    var e = datos.empresas[emp];
+    cabecera(nombreMes(k), e.nombre, '#/' + emp + '/ordinario');
+    var mes = e.ordinario.meses[k];
+    if (!mes) { app.appendChild(sinDatos('Aún no hay datos de este mes.')); return; }
     var leyenda = el('ul', { class: 'leyenda' });
     [['J', 'Jornada 8,5 h'], ['R', 'Jornada 8 h'], ['I', 'Intensiva 6 / 6,5 h'], ['F', 'Festivo']].forEach(function (par) {
       leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] }), document.createTextNode(' ' + par[1])]));
     });
     app.appendChild(el('section', { class: 'bloque' }, [
-      navMes(pintar), vista, leyenda,
-      el('p', { class: 'nota', text: 'Las cifras de cada día son las horas de jornada.' })
+      cuadricula(k, function (d) { return mes[d - 1]; }, {
+        texto: function (t) { return t.charAt(0) === 'F' ? 'F' : fmtHoras(t); }
+      }),
+      leyenda
     ]));
-
-    // Festivos del año que se está viendo (solo si ese mes tiene datos).
-    var seccionFest = el('section', { class: 'bloque' });
-    app.appendChild(seccionFest);
-    function pintarFest() {
-      seccionFest.textContent = '';
-      var anio = estado.ym.slice(0, 4);
-      var claves = Object.keys(e.festivos || {}).filter(function (k) { return k.indexOf(anio) === 0; }).sort();
-      seccionFest.hidden = !(claves.length && e.ordinario.meses[estado.ym]);
-      if (seccionFest.hidden) return;
-      var ul = el('ul', { class: 'lista' });
-      claves.forEach(function (k) {
-        ul.appendChild(el('li', null, [el('strong', { text: fechaCorta(k) }), document.createTextNode(' · ' + e.festivos[k])]));
-      });
-      var ms = Object.keys(e.ordinario.meses).filter(function (k) { return k.indexOf(anio) === 0; }).sort();
-      var rango = ms.length && ms.length < 12 ? ' (' + MESES[+ms[0].slice(5) - 1].slice(0, 3) + '–' + MESES[+ms[ms.length - 1].slice(5) - 1].slice(0, 3) + ')' : '';
-      seccionFest.appendChild(el('h2', { text: 'Festivos ' + anio + rango }));
-      seccionFest.appendChild(ul);
-    }
-
-    // Datos del año (horas de vacaciones, jornada...): solo del año que se está viendo.
-    var seccionRes = el('section', { class: 'bloque' });
-    app.appendChild(seccionRes);
-    function pintarRes() {
-      seccionRes.textContent = '';
-      var anio = estado.ym.slice(0, 4);
-      var res = (e.ordinario.resumen || {})[anio] || {};
-      var ks = Object.keys(res);
-      seccionRes.hidden = !ks.length;
-      if (!ks.length) return;
-      var ul2 = el('ul', { class: 'lista' });
-      ks.forEach(function (k) {
-        ul2.appendChild(el('li', null, [el('strong', { text: k + ': ' }), document.createTextNode(String(res[k]))]));
-      });
-      seccionRes.appendChild(el('h2', { text: 'Datos del año ' + anio }));
-      seccionRes.appendChild(ul2);
-    }
-
-    app.appendChild(bloqueEnlaces(emp, 'ordinario'));
-    pintar();
   }
 
   /* ---------- router ---------- */
@@ -395,8 +261,8 @@
     app.textContent = '';
     var emp = p[0] && datos.empresas[p[0]] ? p[0] : null;
     if (!emp) return pantallaInicio(app);
-    if (p[1] === 'turnos') return pantallaTurnos(app, emp);
-    if (p[1] === 'ordinario') return pantallaOrdinario(app, emp);
+    if (p[1] === 'turnos') return p[2] ? pantallaMesTurnos(app, emp, p[2]) : pantallaMeses(app, emp, 'turnos');
+    if (p[1] === 'ordinario') return p[2] ? pantallaMesOrdinario(app, emp, p[2]) : pantallaMeses(app, emp, 'ordinario');
     return pantallaEmpresa(app, emp);
   }
 
