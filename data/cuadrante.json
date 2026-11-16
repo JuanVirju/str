@@ -1,38 +1,187 @@
 {
-  "_ayuda": "Turnos: un texto por equipo y mes, un caracter por dia (M=Manana T=Tarde N=Noche V=por confirmar -=libre). Ordinario: un texto por mes, un caracter por dia (J=jornada F=festivo -=libre). Enlaces vacios se muestran como proximamente.",
+  "_ayuda": "Turnos: un texto por equipo y mes, un caracter por dia (M manana, T tarde, N noche, V vacaciones, - libre). Ordinario: una lista por mes con un valor por dia (J jornada+horas, I intensiva+horas, R recuperacion+horas, F festivo, - no laborable). Enlaces vacios se muestran como proximamente.",
   "empresas": {
     "nexpoint": {
       "nombre": "NexPoint Cartagena",
-      "logo": "assets/logos/nexpoint.png",
+      "logo": "assets/logos/nexpoint.svg",
+      "logoFondo": "#0a364a",
       "turnos": {
         "equipos": ["A", "B", "C", "D", "E"],
         "meses": {
           "2026-11": {
-            "A": "-MMTTNNNVV--MMMT",
-            "B": "MTTNN-----MMTTTN",
-            "C": "TNN-----MMTTNNNV",
-            "D": "---MMTTTNN-----M",
-            "E": "NVV--MMMTTNN----"
+            "A": "-MMTTNNNVV--MMMTTNN-----MMTTTN",
+            "B": "MTTNN-----MMTTTNN-----MMTTNNNV",
+            "C": "TNN-----MMTTNNNVV--MMMTTNN----",
+            "D": "---MMTTTNN-----MMTTNNNVV--MMMT",
+            "E": "NVV--MMMTTNN-----MMTTTNN-----M"
+          },
+          "2026-12": {
+            "A": "N-----MMTTNNNVV--MMMTTNN-----MM",
+            "B": "V--MMMTTNN-----MMTTTNN-----MMTT",
+            "C": "-MMTTTNN-----MMTTNNNVV--MMMTTNN",
+            "D": "TNN-----MMTTTNN-----MMTTNNNVV--",
+            "E": "MTTNNN--VVMMMTTNN-----MMTTTNN--"
+          },
+          "2027-01": {
+            "A": "TTTNN-----MMTTNNNVV--MMMTTNN---",
+            "B": "NNNVV--MMMTTNN-----MMTTTNN-----",
+            "C": "-----MMTTTNN-----MMTTNNNVVV-MMM",
+            "D": "MMMTTNN-----MMTTTNN-----MMTTNNN",
+            "E": "---MMTTNNNVV--MMMTTNN-----MMTTT"
+          },
+          "2027-02": {
+            "A": "--MMTTTNN-----MMTTNNNVV--MMM",
+            "B": "MMTTNNNVV--MMMTTNN-----MMTTT",
+            "C": "TTNN-----MMTTTNN-----MMTTNNN",
+            "D": "VVV-MMMTTNN-----MMTTTNN-----",
+            "E": "NN-----MMTTNNNVV--MMMTTNN---"
+          },
+          "2027-03": {
+            "A": "TTNN-----MMTTTNN-----MMTTNNNVVV",
+            "B": "NN-----MMTTNNNVV--MMMTTNN-----M",
+            "C": "VVV-MMMTTNN-----MMTTTNN-----MMT",
+            "D": "MMTTNNNVVV-MMMTTNN-----MMTTTNN-",
+            "E": "--MMTTTNN-----MMTTNNNVV--MMMTTN"
+          },
+          "2027-04": {
+            "A": "-MMMTTNN-----MMTTTNN-----MMTTN",
+            "B": "MTTTNN-----MMTTNNNVV--MMMTTNN-",
+            "C": "TNNNVV--MMMTTNN-----MMTTTNN---",
+            "D": "----MMTTNNNVV--MMMTTNN-----MMT",
+            "E": "N-----MMTTTNN-----MMTTNNNVV--M"
+          },
+          "2027-05": {
+            "A": "NNVVV-MMMTTNN-----MMTTTNN-----M",
+            "B": "----MMTTTNN-----MMTTNNNVV--MMMT",
+            "C": "--MMTTNNNVV--MMMTTNN-----MMTTTN",
+            "D": "TTNN-----MMTTNNNVV--MMMTTNN----",
+            "E": "MMTTNN-----MMTTTNN-----MMTTNNNV"
+          },
+          "2027-06": {
+            "A": "MTTNNNVV--MMMTTNN-----MMTTTNN-",
+            "B": "TNN-----MMTTTNN-----MMTTNNNVV-",
+            "C": "N-----MMTTNNNVV--MMMTTNN-----M",
+            "D": "-MMTTTNN-----MMTTNNNVV--MMMTTN",
+            "E": "V--MMMTTNN-----MMTTTNN-----MMT"
+          },
+          "2027-07": {
+            "A": "----MMTTNNNVV--MMMTTNN-----MMTT",
+            "B": "-MMMTTNN-----MMTTTNN-----MMTTNN",
+            "C": "MTTTNN-----MMTTNNNVV--MMMTTNN--",
+            "D": "N-----MMTTTNN-----MMTTNNNVV--MM",
+            "E": "TNNNVV--MMMTTNN-----MMTTTNN----"
+          },
+          "2027-08": {
+            "A": "TNN-----MMTTNNNVV--MMMTTNN-----",
+            "B": "NVV--MMMTTNN-----MMTTTNN-----MM",
+            "C": "---MMTTTNN-----MMTTNNNVV--MMMTT",
+            "D": "MTTNN-----MMTTTNN-----MMTTNNNVV",
+            "E": "-MMTTNNNVV--MMMTTNN-----MMTTTNN"
+          },
+          "2027-09": {
+            "A": "MMTTTNN-----MMTTNNNVV--MMMTTNN",
+            "B": "TTNNNVV--MMMTTNN-----MMTTTNN--",
+            "C": "NN-----MMTTTNN-----MMTTNNNVV--",
+            "D": "--MMMTTNN-----MMTTTNN-----MMTT",
+            "E": "-----MMTTNNNVV--MMMTTNN-----MM"
+          },
+          "2027-10": {
+            "A": "-----MMTTTNN-----MMTTNNNVV--MMM",
+            "B": "---MMTTNNNV-V-MMMTTNN-----MMTTT",
+            "C": "MMMTTNN-----MMTTTNN-----MMTTNNN",
+            "D": "NNNVV--MMMTTNN-----MMTTTNN-----",
+            "E": "TTTNN-----MMTTNNNVV--MMMTTNN---"
+          },
+          "2027-11": {
+            "A": "TTNN-----MMTTTNN-----MMTTNNNVV",
+            "B": "NN-----MMTTNNNVV--MMMTTNN-----",
+            "C": "-VV-MMMTTNN-----MMTTTNN-----MM",
+            "D": "MMTTNNNVV--MMMTTNN-----MMTTTNN",
+            "E": "--MMTTTNN-----MMTTNNNVV--MMMTT"
+          },
+          "2027-12": {
+            "A": "--MMMTTNN-----MMTTTNN-----MMTTN",
+            "B": "MMTTTNN-----MMTTNNNVV--MMMTTNN-",
+            "C": "TTNNN-V-VMMMTTNN-----MMTTTNN---",
+            "D": "-----MMTTNNNVV--MMMTTNN-----MMT",
+            "E": "NN-----MMTTTNN-----MMTTNNNVV--M"
           }
         }
       },
-      "ordinario": { "meses": {} },
+      "ordinario": {
+        "meses": {
+          "2027-01": ["F", "-", "-", "J8.5", "J8.5", "F", "F", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-"],
+          "2027-02": ["J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-"],
+          "2027-03": ["J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "F", "-", "-", "I6", "I6", "I6", "F", "F", "-", "-", "J8.5", "J8.5", "J8.5"],
+          "2027-04": ["J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5"],
+          "2027-05": ["F", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5"],
+          "2027-06": ["J8.5", "J8.5", "J8.5", "I6", "-", "-", "J8.5", "J8.5", "F", "J8.5", "I6", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6", "-", "-", "J8.5", "J8.5", "J8.5"],
+          "2027-07": ["I6", "I6", "-", "-", "I6", "I6", "I6", "I6", "I6", "-", "-", "I6", "I6", "I6", "I6", "I6", "-", "-", "I6", "I6", "I6", "I6", "I6", "-", "-", "I6", "I6", "I6", "I6", "I6", "-"],
+          "2027-08": ["-", "I6", "I6", "I6", "I6", "I6", "-", "-", "I6", "I6", "I6", "I6", "I6", "-", "-", "I6", "I6", "I6", "I6", "I6", "-", "-", "I6", "I6", "I6", "I6", "I6", "-", "-", "I6", "I6"],
+          "2027-09": ["I6", "I6", "I6", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "F", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5"],
+          "2027-10": ["I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "F", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-"],
+          "2027-11": ["F", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "J8.5", "I6.5", "-", "-", "J8.5", "J8.5", "J8.5", "R8", "I6.5", "-", "-", "R8", "R8", "R8", "R8", "I6.5", "-", "-", "R8", "R8"],
+          "2027-12": ["R8", "R8", "I6.5", "-", "-", "F", "R8", "F", "R8", "I6.5", "-", "-", "R8", "R8", "R8", "R8", "I6.5", "-", "-", "R8", "R8", "R8", "R8", "I6", "F", "-", "I6", "I6", "I6", "I6", "I6"]
+        },
+        "resumen": {
+          "Vacaciones (h)": 176,
+          "Asuntos propios (h)": 24,
+          "Jornada total": "1890",
+          "Jornada convenio": "1690"
+        }
+      },
+      "festivos": {
+        "2027-01-01": "Año Nuevo",
+        "2027-06-09": "Día de la Región de Murcia",
+        "2027-01-06": "Epifanía del Señor",
+        "2027-09-24": "Cartagineses y Romanos",
+        "2027-01-07": "Viernes de Dolores*",
+        "2027-10-12": "Fiesta Nacional de España",
+        "2027-03-19": "San José",
+        "2027-11-01": "Fiesta de todos los Santos",
+        "2027-03-25": "Jueves Santo",
+        "2027-12-06": "Día de la Constitución Española",
+        "2027-03-26": "Viernes Santo",
+        "2027-12-08": "Inmaculada Concepción",
+        "2027-05-01": "Fiesta del Trabajo",
+        "2027-12-25": "Natividad del Señor",
+        "2026-12-07": "Festivo",
+        "2026-12-08": "Inmaculada Concepción",
+        "2026-12-25": "Natividad del Señor"
+      },
       "enlaces": {
-        "turnos": { "convenio": "", "faq": "" },
-        "ordinario": { "convenio": "", "faq": "" }
+        "turnos": {
+          "convenio": "",
+          "faq": ""
+        },
+        "ordinario": {
+          "convenio": "",
+          "faq": ""
+        }
       }
     },
     "repsol": {
       "nombre": "Repsol Cartagena",
-      "logo": "assets/logos/repsol.png",
+      "logo": ["assets/logos/repsol.svg", "https://www.repsol.com/content/dam/global/logotipos/repsol/logo-repsol.svg"],
+      "logoFondo": "#ffffff",
       "turnos": {
         "equipos": ["A", "B", "C", "D", "E"],
         "meses": {}
       },
-      "ordinario": { "meses": {} },
+      "ordinario": {
+        "meses": {},
+        "resumen": {}
+      },
+      "festivos": {},
       "enlaces": {
-        "turnos": { "convenio": "", "faq": "" },
-        "ordinario": { "convenio": "", "faq": "" }
+        "turnos": {
+          "convenio": "",
+          "faq": ""
+        },
+        "ordinario": {
+          "convenio": "",
+          "faq": ""
+        }
       }
     }
   }

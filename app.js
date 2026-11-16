@@ -9,6 +9,9 @@
 
   var datos = null;
   var hoy = new Date();
+  // Para probar: añade ?hoy=2027-01-15 a la direccion y la app actuara como si fuera ese dia.
+  var simulado = /[?&]hoy=(\d{4})-(\d{2})-(\d{2})/.exec(location.search);
+  if (simulado) hoy = new Date(+simulado[1], +simulado[2] - 1, +simulado[3], 12, 0, 0);
   var ymHoy = ym(hoy.getFullYear(), hoy.getMonth() + 1);
   var estado = { ym: ymHoy, vista: leer('vista') || 'mi' };
 
@@ -44,6 +47,27 @@
     return MESES[+p[1] - 1] + ' ' + p[0];
   }
 
+  // Mes con el que se abre una pantalla: el actual si hay datos; si no, el siguiente con datos (o el ultimo).
+  function mesInicial(claves) {
+    if (!claves.length) return ymHoy;
+    claves = claves.slice().sort();
+    if (claves.indexOf(ymHoy) >= 0) return ymHoy;
+    for (var i = 0; i < claves.length; i++) if (claves[i] > ymHoy) return claves[i];
+    return claves[claves.length - 1];
+  }
+  function fechaLarga(y, m, d) {
+    return DIA_LARGO[new Date(y, m - 1, d).getDay()] + ' ' + d + ' de ' + MESES[m - 1] + ' de ' + y;
+  }
+  function fechaCorta(iso) {
+    var p = iso.split('-');
+    var wd = new Date(+p[0], +p[1] - 1, +p[2]).getDay();
+    return DIA_LARGO[wd].slice(0, 3) + ' ' + (+p[2]) + ' ' + MESES[+p[1] - 1].slice(0, 3);
+  }
+  function fmtHoras(t) { return t.slice(1).replace('.', ','); }
+  function esFestivo(emp, ymKey, dia) {
+    return !!datos.empresas[emp].festivos[ymKey + '-' + (dia < 10 ? '0' : '') + dia];
+  }
+
   /* ---------- acceso a datos ---------- */
   function turnoDe(emp, ymKey, equipo, dia) {
     var mes = datos.empresas[emp].turnos.meses[ymKey];
@@ -67,17 +91,24 @@
     document.title = titulo + (sub ? ' · ' + sub : '');
   }
 
-  // Logo: si el archivo no existe, se muestra la inicial de la empresa.
+  // Logo: prueba cada direccion de la lista; si ninguna carga, muestra la inicial de la empresa.
   function logo(emp, clase) {
     var e = datos.empresas[emp];
+    var fuentes = [].concat(e.logo || []);
     var caja = el('div', { class: 'logo ' + (clase || '') });
-    var img = el('img', { src: e.logo, alt: e.nombre, loading: 'lazy' });
-    img.addEventListener('error', function () {
+    if (e.logoFondo) caja.style.background = e.logoFondo;
+    var img = el('img', { alt: e.nombre, loading: 'lazy' });
+    var i = 0;
+    function siguiente() {
+      if (i < fuentes.length) { img.src = fuentes[i++]; return; }
       caja.textContent = '';
+      caja.style.background = '';
       caja.classList.add('ph');
       caja.appendChild(el('span', { text: e.nombre.charAt(0) }));
-    });
+    }
+    img.addEventListener('error', siguiente);
     caja.appendChild(img);
+    siguiente();
     return caja;
   }
 
@@ -114,7 +145,9 @@
   }
 
   // Cuadricula mensual generica (lunes primero). codigo(d) devuelve el codigo del dia o null.
-  function cuadricula(ymKey, codigo) {
+  // opts.fest(d) -> bool marca festivo; opts.texto(codigo) -> texto grande de la celda.
+  function cuadricula(ymKey, codigo, opts) {
+    opts = opts || {};
     var grid = el('div', { class: 'cal' });
     ['L', 'M', 'MI', 'J', 'V', 'S', 'D'].forEach(function (n) { grid.appendChild(el('div', { class: 'dn', text: n })); });
     var p = ymKey.split('-');
@@ -126,10 +159,12 @@
       var clases = 'c';
       if (esFinde(ymKey, d)) clases += ' finde';
       if (ymKey === ymHoy && d === hoy.getDate()) clases += ' hoy-c';
-      if (t && t !== '-') clases += ' ' + t;
+      if (t && t !== '-' && t !== '?') clases += ' ' + t.charAt(0);
+      if (opts.fest && opts.fest(d)) clases += ' fest';
+      var texto = !t || t === '?' ? '?' : (t === '-' ? '·' : (opts.texto ? opts.texto(t) : t));
       grid.appendChild(el('div', { class: clases }, [
         el('span', { class: 'd', text: String(d) }),
-        el('span', { class: 's', text: t ? (t === '-' ? '·' : t) : '?' })
+        el('span', { class: 's', text: texto })
       ]));
     }
     return grid;
@@ -174,6 +209,7 @@
     var equipo = leer(claveEq);
     if (equipos.indexOf(equipo) < 0) equipo = null;
     cabecera('Cuadrante de turnos', e.nombre, '#/' + emp);
+    estado.ym = mesInicial(Object.keys(e.turnos.meses));
 
     var cardHoy = el('section', { class: 'hoy', 'aria-live': 'polite' });
     var chips = el('div', { class: 'chips', role: 'radiogroup', 'aria-label': 'Elegir equipo' });
@@ -187,7 +223,14 @@
       cardHoy.appendChild(el('p', { class: 'fecha', text: DIA_LARGO[hoy.getDay()] + ' ' + d + ' de ' + MESES[hoy.getMonth()] }));
       var t = equipo ? turnoDe(emp, ymHoy, equipo, d) : null;
       if (!equipo) cardHoy.appendChild(el('p', { class: 'grande', text: 'Elige tu equipo' }));
-      else if (!t) cardHoy.appendChild(el('p', { class: 'grande', text: 'Sin datos de hoy' }));
+      else if (!t) {
+        cardHoy.appendChild(el('p', { class: 'grande', text: 'Sin datos de hoy' }));
+        var claves = Object.keys(e.turnos.meses).sort();
+        if (claves.length && claves[0] > ymHoy) {
+          var pp = claves[0].split('-');
+          cardHoy.appendChild(el('p', { class: 'quien', text: 'El cuadrante empieza el ' + fechaLarga(+pp[0], +pp[1], 1) + '.' }));
+        }
+      }
       else cardHoy.appendChild(el('p', { class: 'grande' }, [document.createTextNode(NOMBRE[t]), el('small', { text: '  · Equipo ' + equipo })]));
       var q = el('p', { class: 'quien' });
       var alguno = false;
@@ -211,7 +254,8 @@
       var c = el('div');
       if (!equipo) { c.appendChild(sinDatos('Elige tu equipo arriba para ver tu calendario.')); return c; }
       if (!e.turnos.meses[estado.ym]) { c.appendChild(sinDatos('Aún no hay datos de este mes.')); return c; }
-      c.appendChild(cuadricula(estado.ym, function (d) { return turnoDe(emp, estado.ym, equipo, d); }));
+      c.appendChild(cuadricula(estado.ym, function (d) { return turnoDe(emp, estado.ym, equipo, d); },
+        { fest: function (d) { return esFestivo(emp, estado.ym, d); } }));
       return c;
     }
 
@@ -224,7 +268,8 @@
       var f2 = el('tr');
       var d;
       for (d = 1; d <= total; d++) {
-        var cls = (esFinde(estado.ym, d) ? 'finde-h' : '') + (estado.ym === ymHoy && d === hoy.getDate() ? ' hoy-col' : '');
+        var cls = (esFinde(estado.ym, d) ? 'finde-h' : '') + (esFestivo(emp, estado.ym, d) ? ' fest-h' : '') +
+          (estado.ym === ymHoy && d === hoy.getDate() ? ' hoy-col' : '');
         f1.appendChild(el('th', { class: cls, text: String(d) }));
         f2.appendChild(el('th', { class: cls, text: DIA_CORTO[new Date(+p[0], +p[1] - 1, d).getDay()] }));
       }
@@ -257,8 +302,8 @@
     btnTabla.addEventListener('click', function () { estado.vista = 'tabla'; guardar('vista', 'tabla'); pintarVista(); });
 
     var leyenda = el('ul', { class: 'leyenda' });
-    [['M', 'Mañana'], ['T', 'Tarde'], ['N', 'Noche'], ['V', 'V'], ['L', 'Libre']].forEach(function (par) {
-      leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] === 'L' ? '·' : par[0] }), document.createTextNode(' ' + par[1])]));
+    [['M', 'Mañana'], ['T', 'Tarde'], ['N', 'Noche'], ['V', 'Vacaciones'], ['L', 'Libre'], ['fest', 'Festivo']].forEach(function (par) {
+      leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] === 'L' ? '·' : (par[0] === 'fest' ? '' : par[0]) }), document.createTextNode(' ' + par[1])]));
     });
 
     app.appendChild(cardHoy);
@@ -277,17 +322,56 @@
   function pantallaOrdinario(app, emp) {
     var e = datos.empresas[emp];
     cabecera('Calendario ordinario', e.nombre, '#/' + emp);
+    estado.ym = mesInicial(Object.keys(e.ordinario.meses));
     var vista = el('div');
     function pintar() {
       vista.textContent = '';
-      if (!e.ordinario.meses[estado.ym]) { vista.appendChild(sinDatos('Aún no hay datos de este mes.')); return; }
-      vista.appendChild(cuadricula(estado.ym, function (d) { return ordinarioDe(emp, estado.ym, d); }));
+      var mes = e.ordinario.meses[estado.ym];
+      if (mes) {
+        vista.appendChild(cuadricula(estado.ym, function (d) { return mes[d - 1]; }, {
+          texto: function (t) { return t.charAt(0) === 'F' ? 'F' : fmtHoras(t); }
+        }));
+      } else {
+        vista.appendChild(sinDatos('Aún no hay datos de este mes.'));
+      }
+      pintarFest();
     }
     var leyenda = el('ul', { class: 'leyenda' });
-    [['J', 'Jornada'], ['F', 'Festivo'], ['L', 'Libre']].forEach(function (par) {
-      leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] === 'L' ? '·' : par[0] }), document.createTextNode(' ' + par[1])]));
+    [['J', 'Jornada'], ['I', 'Intensiva'], ['R', 'Recuperación 30 min'], ['F', 'Festivo']].forEach(function (par) {
+      leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] }), document.createTextNode(' ' + par[1])]));
     });
-    app.appendChild(el('section', { class: 'bloque' }, [navMes(pintar), vista, leyenda]));
+    app.appendChild(el('section', { class: 'bloque' }, [
+      navMes(pintar), vista, leyenda,
+      el('p', { class: 'nota', text: 'Las cifras de cada día son las horas de jornada.' })
+    ]));
+
+    // Festivos del año que se está viendo (solo si ese mes tiene datos).
+    var seccionFest = el('section', { class: 'bloque' });
+    app.appendChild(seccionFest);
+    function pintarFest() {
+      seccionFest.textContent = '';
+      var anio = estado.ym.slice(0, 4);
+      var claves = Object.keys(e.festivos || {}).filter(function (k) { return k.indexOf(anio) === 0; }).sort();
+      seccionFest.hidden = !(claves.length && e.ordinario.meses[estado.ym]);
+      if (seccionFest.hidden) return;
+      var ul = el('ul', { class: 'lista' });
+      claves.forEach(function (k) {
+        ul.appendChild(el('li', null, [el('strong', { text: fechaCorta(k) }), document.createTextNode(' · ' + e.festivos[k])]));
+      });
+      seccionFest.appendChild(el('h2', { text: 'Festivos ' + anio }));
+      seccionFest.appendChild(ul);
+    }
+
+    var res = e.ordinario.resumen || {};
+    var ks = Object.keys(res);
+    if (ks.length) {
+      var ul2 = el('ul', { class: 'lista' });
+      ks.forEach(function (k) {
+        ul2.appendChild(el('li', null, [el('strong', { text: k + ': ' }), document.createTextNode(String(res[k]))]));
+      });
+      app.appendChild(el('section', { class: 'bloque' }, [el('h2', { text: 'Datos del año' }), ul2]));
+    }
+
     app.appendChild(bloqueEnlaces(emp, 'ordinario'));
     pintar();
   }
@@ -306,7 +390,6 @@
   }
 
   window.addEventListener('hashchange', function () {
-    estado.ym = ymHoy;
     render();
     window.scrollTo(0, 0);
   });

@@ -1,4 +1,4 @@
-Coloca aqui los logos (con permiso del cliente):
-  nexpoint.png
-  repsol.png
-Si el archivo no existe, la app muestra la inicial de la empresa.
+Logos de las empresas (con permiso del cliente):
+  nexpoint.svg  (copiado de la web de NexPoint)
+  repsol.svg    (opcional: si no existe, se carga desde la web de Repsol)
+Si ninguno carga, la app muestra la inicial de la empresa.
