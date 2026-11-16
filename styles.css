@@ -216,3 +216,4 @@ table.t { touch-action: pan-x pan-y; }
 .tile.ancho { min-height: 64px; align-items: center; justify-content: center; text-align: center; padding: 10px 8px; border-radius: 14px; }
 .tiles.uno .tile-t { font-size: 1rem; }
 .banner { margin-bottom: 14px; }
+.tiles.uno + .bloque { margin-top: 14px; }

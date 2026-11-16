@@ -179,6 +179,7 @@
         el('span', { class: 'tile-t', text: 'Calendario ordinario' })
       ])
     ]));
+    app.appendChild(bloqueEnlaces(emp, 'turnos'));
   }
 
   /* ---------- pantalla 3: lista de meses (turnos u ordinario) ---------- */
