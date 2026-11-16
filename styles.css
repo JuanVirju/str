@@ -207,3 +207,7 @@ table.t { touch-action: pan-x pan-y; }
 .vecino .fl { font-size: 1.8rem; line-height: 1; }
 .vecino:active { background: var(--azul-claro); }
 .vecino.off { visibility: hidden; }
+/* Ordinario: fines de semana en gris; jornada de 8,5 h en blanco */
+.cal .c.solo.J { background: #fff; }
+.cal .c.solo.finde:not(.F) { background: #c5c9d3; border-color: #aab0bd; }
+.cal .c.solo.finde:not(.F) .d { color: #4a4f5c; }
