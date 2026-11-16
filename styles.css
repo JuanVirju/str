@@ -190,3 +190,7 @@ table.t thead th.fest-h { background: #d68a4a; color: #fff; }
 
 table.t { touch-action: pan-x pan-y; }
 .tabla-wrap { -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+
+.cal .c.solo { min-height: 50px; }
+.cal .c.solo .d { font-size: 1.1rem; font-weight: 800; color: #111; }
+.cal .c.F.solo .d { color: #fff; }

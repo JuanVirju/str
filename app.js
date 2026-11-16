@@ -141,9 +141,10 @@
       if (t && t !== '-' && t !== '?') clases += ' ' + t.charAt(0);
       if (opts.fest && opts.fest(d)) clases += ' fest';
       var texto = !t || t === '?' ? '?' : (t === '-' ? '·' : (opts.texto ? opts.texto(t) : t));
+      if (opts.soloDia) clases += ' solo';
       grid.appendChild(el('div', { class: clases }, [
         el('span', { class: 'd', text: String(d) }),
-        el('span', { class: 's', text: texto })
+        opts.soloDia ? null : el('span', { class: 's', text: texto })
       ]));
     }
     return grid;
@@ -232,11 +233,7 @@
       tbody.appendChild(tr);
     });
     var tabla = el('table', { class: 't' }, [el('thead', null, [f1, f2]), tbody]);
-    var leyenda = el('ul', { class: 'leyenda' });
-    [['M', 'Mañana'], ['T', 'Tarde'], ['N', 'Noche'], ['V', 'Vacaciones'], ['fest', 'Festivo']].forEach(function (par) {
-      leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] === 'fest' ? '' : par[0] }), document.createTextNode(' ' + par[1])]));
-    });
-    app.appendChild(el('section', { class: 'bloque' }, [el('div', { class: 'tabla-wrap' }, [tabla]), el('p', { class: 'nota', text: 'Desliza hacia los lados para ver todos los días →' }), leyenda]));
+    app.appendChild(el('section', { class: 'bloque' }, [el('div', { class: 'tabla-wrap' }, [tabla]), el('p', { class: 'nota', text: 'Desliza hacia los lados para ver todos los días →' })]));
   }
 
   /* ---------- pantalla 4b: un mes de ordinario ---------- */
@@ -250,9 +247,7 @@
       leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] }), document.createTextNode(' ' + par[1])]));
     });
     app.appendChild(el('section', { class: 'bloque' }, [
-      cuadricula(k, function (d) { return mes[d - 1]; }, {
-        texto: function (t) { return t.charAt(0) === 'F' ? 'F' : fmtHoras(t); }
-      }),
+      cuadricula(k, function (d) { return mes[d - 1]; }, { soloDia: true }),
       leyenda
     ]));
   }
