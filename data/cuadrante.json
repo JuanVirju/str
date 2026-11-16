@@ -643,5 +643,13 @@
     }
    }
   }
- }
+ },
+ "ayuda": [
+  "Cuadrante de turnos: elige la empresa y luego el mes. Cada fila es un equipo (A–E). M = mañana, T = tarde, N = noche, V = vacaciones. Las celdas vacías son días libres.",
+  "Los días festivos aparecen marcados en naranja en la cabecera de la tabla.",
+  "Comentarios: toca un día de tu equipo en la tabla para añadir una nota. Se guardan solo en este dispositivo.",
+  "Copia de tus comentarios: en «Mis comentarios» puedes exportarlos para guardarlos o pasarlos a otro móvil.",
+  "Si la app no muestra los últimos cambios, ciérrala del todo y ábrela de nuevo.",
+  "Versión de demostración. Consulta siempre el cuadrante oficial de la empresa."
+ ]
 }

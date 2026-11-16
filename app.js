@@ -168,6 +168,10 @@
       ]));
     });
     app.appendChild(cont);
+    app.appendChild(el('div', { class: 'enlaces-inicio' }, [
+      el('a', { class: 'chip-link', href: '#/comentarios', text: 'Mis comentarios' }),
+      el('a', { class: 'chip-link', href: '#/ayuda', text: 'Ayuda' })
+    ]));
   }
 
   /* ---------- pantalla 2: menu de la empresa ---------- */
@@ -264,6 +268,101 @@
     setTimeout(function () { area.focus(); }, 50);
   }
 
+  /* ---------- Mis comentarios y Ayuda ---------- */
+  var CLAVE_EXPORT = 'STR-COMENTARIOS';
+  function textoExport(notas) { return CLAVE_EXPORT + '\n' + JSON.stringify({ v: 1, notas: notas }); }
+  function leerExport(txt) {
+    var i = txt.indexOf(CLAVE_EXPORT);
+    if (i < 0) return null;
+    try {
+      var o = JSON.parse(txt.slice(i + CLAVE_EXPORT.length).trim());
+      return o && o.notas && typeof o.notas === 'object' ? o.notas : null;
+    } catch (e) { return null; }
+  }
+
+  function pantallaComentarios(app) {
+    cabecera('Mis comentarios', 'Solo en este dispositivo', '#/');
+    var notas = leerNotas();
+    var claves = Object.keys(notas).filter(function (c) {
+      var q = c.split('|'); return datos.empresas[q[0]] && /^\d{4}-\d{2}-\d{2}$/.test(q[1] || '');
+    }).sort(function (a, b) { return a.split('|')[1] < b.split('|')[1] ? -1 : a.split('|')[1] > b.split('|')[1] ? 1 : 0; });
+
+    var lista = el('section', { class: 'bloque' });
+    if (!claves.length) {
+      lista.appendChild(el('p', { class: 'sin-datos', text: 'Aún no has escrito ningún comentario. Entra en el cuadrante de turnos, abre un mes y toca un día de tu equipo.' }));
+    }
+    claves.forEach(function (c) {
+      var q = c.split('|'), f = q[1].split('-'), emp = q[0];
+      lista.appendChild(el('a', { class: 'nota-fila', href: '#/' + emp + '/turnos/' + f[0] + '-' + f[1] }, [
+        el('span', { class: 'nota-cab', text: (+f[2]) + ' de ' + MESES[+f[1] - 1] + ' de ' + f[0] + ' · ' + datos.empresas[emp].nombre + ' · Equipo ' + q[2] }),
+        el('span', { class: 'nota-txt', text: notas[c] })
+      ]));
+    });
+    app.appendChild(lista);
+
+    var zona = el('div', { class: 'zona-copia' });
+    var bExp = el('button', { class: 'btn-s', type: 'button', text: 'Exportar' });
+    var bImp = el('button', { class: 'btn-s', type: 'button', text: 'Importar' });
+    app.appendChild(el('section', { class: 'bloque info' }, [
+      el('h2', { text: 'Copia de seguridad' }),
+      el('div', { class: 'modal-btns' }, [bExp, bImp]),
+      zona
+    ]));
+    if (!claves.length) bExp.disabled = true;
+
+    bExp.addEventListener('click', function () {
+      zona.textContent = '';
+      var txt = textoExport(notas);
+      var area = el('textarea', { class: 'modal-area', rows: '5', readonly: 'readonly', 'aria-label': 'Texto de la copia' });
+      area.value = txt;
+      var fila = el('div', { class: 'modal-btns' });
+      if (navigator.share) {
+        var bs = el('button', { class: 'btn-p', type: 'button', text: 'Compartir' });
+        bs.addEventListener('click', function () { navigator.share({ text: txt }).catch(function () {}); });
+        fila.appendChild(bs);
+      }
+      var bc = el('button', { class: 'btn-p', type: 'button', text: 'Copiar' });
+      bc.addEventListener('click', function () {
+        function ok() { bc.textContent = 'Copiado'; }
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, function () { area.select(); });
+        else { area.select(); try { document.execCommand('copy'); ok(); } catch (e) { /* se queda seleccionado */ } }
+      });
+      fila.appendChild(bc);
+      zona.appendChild(el('p', { class: 'nota', text: 'Guarda este texto (por ejemplo en notas o en un mensaje a ti mismo). Para recuperarlo, pégalo en «Importar».' }));
+      zona.appendChild(area); zona.appendChild(fila);
+    });
+
+    bImp.addEventListener('click', function () {
+      zona.textContent = '';
+      var area = el('textarea', { class: 'modal-area', rows: '5', placeholder: 'Pega aquí el texto copiado…', 'aria-label': 'Texto a importar' });
+      var msg = el('p', { class: 'nota', text: 'Los comentarios que ya tengas no se sobrescriben: solo se añaden los que falten.' });
+      var b = el('button', { class: 'btn-p', type: 'button', text: 'Añadir comentarios' });
+      b.addEventListener('click', function () {
+        var nuevas = leerExport(area.value);
+        if (!nuevas) { msg.textContent = 'No reconozco ese texto. Pega el texto completo tal y como se copió.'; return; }
+        var actual = leerNotas(), add = 0, ya = 0;
+        Object.keys(nuevas).forEach(function (c) {
+          if (typeof nuevas[c] !== 'string' || !nuevas[c].trim()) return;
+          if (actual[c]) { ya++; return; }
+          actual[c] = nuevas[c].slice(0, 500); add++;
+        });
+        guardar('comentarios', JSON.stringify(actual));
+        render();
+        var m = document.querySelector('.zona-copia');
+        if (m) m.appendChild(el('p', { class: 'nota', text: add + ' comentario(s) añadido(s)' + (ya ? ', ' + ya + ' ya existían y se han dejado como estaban.' : '.') }));
+      });
+      zona.appendChild(msg); zona.appendChild(area);
+      zona.appendChild(el('div', { class: 'modal-btns' }, [b]));
+    });
+  }
+
+  function pantallaAyuda(app) {
+    cabecera('Ayuda', '', '#/');
+    var ul = el('ul', { class: 'ayuda' });
+    (datos.ayuda || []).forEach(function (t) { ul.appendChild(el('li', { text: t })); });
+    app.appendChild(el('section', { class: 'bloque' }, [ul]));
+  }
+
   /* ---------- pantalla 4a: un mes de turnos, los 5 equipos ---------- */
   function pantallaMesTurnos(app, emp, k) {
     var e = datos.empresas[emp];
@@ -341,6 +440,8 @@
     var p = h ? h.split('/') : [];
     var app = document.getElementById('app');
     app.textContent = '';
+    if (p[0] === 'comentarios') return pantallaComentarios(app);
+    if (p[0] === 'ayuda') return pantallaAyuda(app);
     var emp = p[0] && datos.empresas[p[0]] ? p[0] : null;
     if (!emp) return pantallaInicio(app);
     if (p[1] === 'turnos') return p[2] ? pantallaMesTurnos(app, emp, p[2]) : pantallaMeses(app, emp, 'turnos');
