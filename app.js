@@ -227,6 +227,40 @@
     return el('nav', { class: 'vecinos', 'aria-label': 'Cambiar de mes' }, [lado(i - 1, 'ant', '‹', true), lado(i + 1, 'sig', '›', false)]);
   }
 
+  /* ---------- comentarios (solo en este dispositivo) ---------- */
+  function leerNotas() {
+    try { var o = JSON.parse(leer('comentarios') || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; }
+  }
+  function clNota(emp, k, d, eq) { return emp + '|' + k + '-' + (d < 10 ? '0' + d : d) + '|' + eq; }
+  function ponerNota(clave, texto) {
+    var n = leerNotas();
+    if (texto) n[clave] = texto; else delete n[clave];
+    guardar('comentarios', JSON.stringify(n));
+  }
+  function panelNota(titulo, sub, clave, alCambiar) {
+    var fondo = el('div', { class: 'modal-fondo' });
+    var area = el('textarea', { class: 'modal-area', rows: '4', maxlength: '500', placeholder: 'Escribe aquí tu comentario…', 'aria-label': 'Comentario' });
+    area.value = leerNotas()[clave] || '';
+    function cerrar() { if (fondo.parentNode) fondo.parentNode.removeChild(fondo); }
+    function fin() { ponerNota(clave, area.value.trim()); cerrar(); alCambiar(); }
+    var guardarB = el('button', { class: 'btn-p', type: 'button', text: 'Guardar' });
+    var borrarB = el('button', { class: 'btn-s', type: 'button', text: 'Borrar' });
+    var cerrarB = el('button', { class: 'btn-s', type: 'button', text: 'Cancelar' });
+    guardarB.addEventListener('click', fin);
+    borrarB.addEventListener('click', function () { area.value = ''; fin(); });
+    cerrarB.addEventListener('click', cerrar);
+    fondo.addEventListener('click', function (ev) { if (ev.target === fondo) cerrar(); });
+    fondo.appendChild(el('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true' }, [
+      el('h3', { text: titulo }),
+      el('p', { class: 'modal-sub', text: sub }),
+      area,
+      el('p', { class: 'nota', text: 'Se guarda solo en este dispositivo.' }),
+      el('div', { class: 'modal-btns' }, [borrarB, cerrarB, guardarB])
+    ]));
+    document.body.appendChild(fondo);
+    setTimeout(function () { area.focus(); }, 50);
+  }
+
   /* ---------- pantalla 4a: un mes de turnos, los 5 equipos ---------- */
   function pantallaMesTurnos(app, emp, k) {
     var e = datos.empresas[emp];
@@ -244,6 +278,7 @@
       f1.appendChild(el('th', { class: cls, text: String(d) }));
       f2.appendChild(el('th', { class: cls, text: DIA_CORTO[new Date(+p[0], +p[1] - 1, d).getDay()] }));
     }
+    var notas = leerNotas();
     var tbody = el('tbody');
     equipos.forEach(function (x) {
       var tr = el('tr', null, [el('th', { class: 'eq', text: x })]);
@@ -253,13 +288,31 @@
         if (esFinde(k, i)) cc += ' finde';
         if (t === 'V') cc += ' V';
         if (k === ymHoy && i === hoy.getDate()) cc += ' hoy-col';
-        tr.appendChild(el('td', { class: cc.trim(), text: !t || t === '-' ? '' : t }));
+        if (notas[clNota(emp, k, i, x)]) cc += ' nota-c';
+        var td = el('td', { class: cc.trim(), text: !t || t === '-' ? '' : t });
+        td.setAttribute('data-d', String(i)); td.setAttribute('data-eq', x);
+        tr.appendChild(td);
       }
       tbody.appendChild(tr);
     });
     var tabla = el('table', { class: 't' }, [el('thead', null, [f1, f2]), tbody]);
+    tabla.addEventListener('click', function (ev) {
+      var td = ev.target.closest ? ev.target.closest('td') : null;
+      if (!td || !td.getAttribute('data-d')) return;
+      var dia = +td.getAttribute('data-d'), eq = td.getAttribute('data-eq');
+      var t = turnoDe(emp, k, eq, dia);
+      var nombreT = { M: 'Mañana', T: 'Tarde', N: 'Noche', V: 'Vacaciones' }[t] || 'Libre';
+      panelNota('Equipo ' + eq + ' · ' + dia + ' de ' + MESES[+p[1] - 1] + ' de ' + p[0], nombreT,
+        clNota(emp, k, dia, eq), function () {
+          var sl = td.closest('.tabla-wrap').scrollLeft, sy = window.pageYOffset;
+          render();
+          var w = document.querySelector('.tabla-wrap');
+          if (w) w.scrollLeft = sl;
+          window.scrollTo(0, sy);
+        });
+    });
     app.appendChild(navVecinos(emp, 'turnos', k, Object.keys(e.turnos.meses).sort()));
-    app.appendChild(el('section', { class: 'bloque' }, [el('div', { class: 'tabla-wrap' }, [tabla]), el('p', { class: 'nota', text: 'Desliza hacia los lados para ver todos los días →' })]));
+    app.appendChild(el('section', { class: 'bloque' }, [el('div', { class: 'tabla-wrap' }, [tabla]), el('p', { class: 'nota', text: 'Desliza hacia los lados para ver todos los días. Toca un día para añadir un comentario.' })]));
   }
 
   /* ---------- pantalla 4b: un mes de ordinario ---------- */
