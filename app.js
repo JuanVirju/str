@@ -335,9 +335,10 @@
         vista.appendChild(sinDatos('Aún no hay datos de este mes.'));
       }
       pintarFest();
+      pintarRes();
     }
     var leyenda = el('ul', { class: 'leyenda' });
-    [['J', 'Jornada'], ['I', 'Intensiva'], ['R', 'Recuperación 30 min'], ['F', 'Festivo']].forEach(function (par) {
+    [['J', 'Jornada 8,5 h'], ['R', 'Jornada 8 h'], ['I', 'Intensiva 6 / 6,5 h'], ['F', 'Festivo']].forEach(function (par) {
       leyenda.appendChild(el('li', null, [el('span', { class: 'p ' + par[0], text: par[0] }), document.createTextNode(' ' + par[1])]));
     });
     app.appendChild(el('section', { class: 'bloque' }, [
@@ -358,18 +359,28 @@
       claves.forEach(function (k) {
         ul.appendChild(el('li', null, [el('strong', { text: fechaCorta(k) }), document.createTextNode(' · ' + e.festivos[k])]));
       });
-      seccionFest.appendChild(el('h2', { text: 'Festivos ' + anio }));
+      var ms = Object.keys(e.ordinario.meses).filter(function (k) { return k.indexOf(anio) === 0; }).sort();
+      var rango = ms.length && ms.length < 12 ? ' (' + MESES[+ms[0].slice(5) - 1].slice(0, 3) + '–' + MESES[+ms[ms.length - 1].slice(5) - 1].slice(0, 3) + ')' : '';
+      seccionFest.appendChild(el('h2', { text: 'Festivos ' + anio + rango }));
       seccionFest.appendChild(ul);
     }
 
-    var res = e.ordinario.resumen || {};
-    var ks = Object.keys(res);
-    if (ks.length) {
+    // Datos del año (horas de vacaciones, jornada...): solo del año que se está viendo.
+    var seccionRes = el('section', { class: 'bloque' });
+    app.appendChild(seccionRes);
+    function pintarRes() {
+      seccionRes.textContent = '';
+      var anio = estado.ym.slice(0, 4);
+      var res = (e.ordinario.resumen || {})[anio] || {};
+      var ks = Object.keys(res);
+      seccionRes.hidden = !ks.length;
+      if (!ks.length) return;
       var ul2 = el('ul', { class: 'lista' });
       ks.forEach(function (k) {
         ul2.appendChild(el('li', null, [el('strong', { text: k + ': ' }), document.createTextNode(String(res[k]))]));
       });
-      app.appendChild(el('section', { class: 'bloque' }, [el('h2', { text: 'Datos del año' }), ul2]));
+      seccionRes.appendChild(el('h2', { text: 'Datos del año ' + anio }));
+      seccionRes.appendChild(ul2);
     }
 
     app.appendChild(bloqueEnlaces(emp, 'ordinario'));
