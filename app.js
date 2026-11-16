@@ -171,13 +171,21 @@
   function pantallaEmpresa(app, emp) {
     cabecera(datos.empresas[emp].nombre, '', '#/');
     app.appendChild(el('div', { class: 'banner' }, [logo(emp, 'grande')]));
+    var e = datos.empresas[emp];
+    var hay = {
+      turnos: Object.keys((e.turnos || {}).meses || {}).length > 0,
+      ordinario: Object.keys((e.ordinario || {}).meses || {}).length > 0
+    };
+    function boton(sec, texto) {
+      if (hay[sec]) return el('a', { class: 'tile ancho', href: '#/' + emp + '/' + sec }, [el('span', { class: 'tile-t', text: texto })]);
+      return el('span', { class: 'tile ancho pronto-tile', 'aria-disabled': 'true' }, [
+        el('span', { class: 'tile-t', text: texto }),
+        el('span', { class: 'tile-s', text: 'Próximamente' })
+      ]);
+    }
     app.appendChild(el('div', { class: 'tiles uno' }, [
-      el('a', { class: 'tile ancho', href: '#/' + emp + '/turnos' }, [
-        el('span', { class: 'tile-t', text: 'Cuadrante de turnos' })
-      ]),
-      el('a', { class: 'tile ancho', href: '#/' + emp + '/ordinario' }, [
-        el('span', { class: 'tile-t', text: 'Calendario ordinario' })
-      ])
+      boton('turnos', 'Cuadrante de turnos'),
+      boton('ordinario', 'Calendario ordinario')
     ]));
     app.appendChild(bloqueEnlaces(emp, 'turnos'));
   }

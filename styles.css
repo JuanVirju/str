@@ -227,3 +227,8 @@ table.t { touch-action: pan-x pan-y; }
 }
 .bloque.info .enlaces a::after { content: " ›"; float: right; font-weight: 700; }
 .bloque.info .pronto { min-height: 42px; padding: 10px 12px; font-size: .92rem; font-weight: 500; text-align: left; border-radius: 10px; }
+/* Boton aun sin datos */
+.tile.pronto-tile { background: #e4e7ef; border: 2px dashed #aab; cursor: default; gap: 2px; }
+.tile.pronto-tile .tile-t { color: #6b7080; }
+.tile.pronto-tile .tile-s { color: #7a7f8f; font-size: .8rem; }
+.tile.pronto-tile:active { background: #e4e7ef; }
